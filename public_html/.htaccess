@@ -1,0 +1,11 @@
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(event|person)(/?)$ listset.php?op=$1 [L]
+RewriteRule ^place(/?)$ photoset.php?op=l&id=0 [L]
+RewriteRule ^event/([0-9]+)/?$ photoset.php?id=$1&op=e [L]
+RewriteRule ^person/([0-9]+)$ photoset.php?id=$1&op=p [L]
+RewriteRule ^place/([0-9]+)$ photoset.php?id=$1&op=l [L]
+RewriteRule ^$ listset.php [L]
+RewriteCond %{THE_REQUEST} listset\.php
+RewriteRule ^listset.php - [F]

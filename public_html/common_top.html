@@ -1,0 +1,32 @@
+<div class="container" id='my-nav'>
+	<div class="navbar-header">
+		<span class="navbar-brand"></span>
+	</div>
+	<div class="navbar-collapse collapse">
+		<div id="nav-msg" style="display: inline-block;"></div>
+		<ul class="nav navbar-nav">
+		 	<li class='evt'><a href="/event/"><span id='lbl-events'>Events</span></a></li>
+		 	<li class='loc'><a href="/place/"><span id='lbl-places'>Places</span></a></li>
+		 	<li class='ppl'><a href="/person/"><span id='lbl-people'>People</span></a></li>
+		 	<li class='vid'><a href="/video/"><span id='lbl-video'>Video</span></a></li>
+		</ul>
+		<ul class="nav navbar-nav navbar-right">
+			<li class="dropdown my-lng">
+	          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" 
+	          	aria-expanded="false"><span class="my-lng-curr">Russian</span> <span class="caret"></span></a>
+	          <ul class="dropdown-menu">
+	            <li><a onclick="setLanguage(this);" style="cursor: pointer;"></a></li>
+	          </ul>
+			</li>
+			<li class="dropdown my-opt">
+	          <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" 
+	          	aria-expanded="false"><span class="my-opt-sel">Options</span> <span class="caret"></span></a>
+	          <ul class="dropdown-menu">
+	            <li class='my-opt-snt'><a href='#' onclick="return toggleSentimental();">Sentimental</a></li>
+	            <li role="separator" class="divider"></li>
+	            <li class='my-opt-fth'><a href='#' onclick="return toggleFullThumbnail();">Full thumbnails</a></li>
+	          </ul>
+	        </li>
+		</ul>
+	</div>
+</div>

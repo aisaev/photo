@@ -1,0 +1,25 @@
+@charset "UTF-8";
+body {
+	padding-top: 70px;
+}
+li.my-lng img{max-width:24px;}
+#largePhoto,#details{display: inline-block;top:0px;}
+div.photo {
+	display: inline-block;
+	padding: 3px;
+	position: relative;
+}
+.photo img {
+	border: 7px solid black;
+	cursor: pointer;
+}
+#photoDetails, #photoDetails .modal-content, #photoDetails .modal-dialog{
+	background-color: black;
+	padding: 0px;
+	margin: 0px;
+	color: white;
+}
+#largePhoto img{cursor:pointer;}
+.content-center{text-align: center;}
+#details{text-align:left;}
+.lazy-loading{width:360px;height: 360px;}
