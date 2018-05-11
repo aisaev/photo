@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+<link href="/bootstrap/css/bootstrap.css" rel="stylesheet">
+<style>
+body{padding-top: 70px;}
+.ph-dir{display:inline-block;margin-left:10px;margin-bottom:10px;}
+</style>
+<title>Tools</title>
+<script src="/js/jquery.js"></script>
+<script src="/bootstrap/js/bootstrap.js"></script>
+<script src="/js/tools.js"></script>
+</head>
+<body>
+<nav id="common-nav" class="navbar navbar-default navbar-fixed-top">
+<div class="container">
+	<div class="navbar-header">
+		<span class="navbar-brand"></span>
+	</div>
+	<div class="navbar-collapse collapse">
+		<div id="nav-msg" style="display: inline-block;"></div>
+		<button type="button" class="btn btn-default navbar-btn" onclick="return prepPhotos();">Prepare photos</button>		
+		<button type="button" class="btn btn-default navbar-btn" onclick="return auditPhotos();">Photo/DB audit</button>
+	</div>
+</div>
+</nav>
+<div id="msg" class="container"></div>
+<div id="content" class="container"></div>
+</body>
+</html>
