@@ -573,7 +573,7 @@ function saveEvent() {
 }
 
 function savePerson() {
-	$.post("edit_api.php?op=edppl",$("#ppledit form").serialize())
+	$.post("api.php?op=edppl",$("#ppledit form").serialize())
 		.done(function(data){
 			//returns pplID
 			if(data['e']=='0') {

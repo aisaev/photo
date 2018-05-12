@@ -20,6 +20,7 @@ use photo\DAO\LocationDAO;
 use photo\DAO\PersonDAO;
 use photo\Model\Event;
 use photo\Model\Location;
+use photo\Model\Person;
 
 class ToolsAPI
 {
@@ -95,6 +96,13 @@ class ToolsAPI
                     $a[]=$resp;
                 }
                 return $a;
+            case 'edppl': //edit person
+                if (!isset($_POST['n'])) throw new \Exception('No person data received');
+                $o = new Person();
+                $dao = PersonDAO::getInstance();
+                $dao->initFromPOST($_POST,$o);
+                $dao->save($o);
+                return $o;
             case 'el':
                 $dao = EventDAO::getInstance();
                 return $dao->getList(); 
@@ -242,6 +250,12 @@ class ToolsAPI
             }
         }
         return $a;
+    }
+    
+    private function editPerson() {
+        $oPerson = new Person();
+        $oPerson->initFromPOST($_POST);
+        return array('id' => $oPerson->db_save());
     }
     
     private function prepareListOfDBPhotos() {

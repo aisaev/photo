@@ -13,7 +13,7 @@ class Thumbnail
     }
     
     public function resize_image($w, $h, $outfile, $qual = 75, $crop = FALSE) {
-        list ( $width, $height ) = getimagesize ( $this->dir.'/'.$this->file );
+        list ( $width, $height ) = \getimagesize ( $this->dir.'/'.$this->file );
         if($width==null)
             throw new \Exception("Failed to get image info for ".$this->dir.$this->file);
         $r = $width / $height;
@@ -25,30 +25,30 @@ class Thumbnail
             $newwidth = $w;
         }
         if($width <= $newwidth) {
-            if(copy($this->dir.'/'.$this->file, $outfile)==false) 
+            if(\copy($this->dir.'/'.$this->file, $outfile)==false) 
                 throw new \Exception('Failed to create resized image '.$dst);
         }
-        $src = imagecreatefromjpeg ( $this->dir.'/'.$this->file );
+        $src = \imagecreatefromjpeg ( $this->dir.'/'.$this->file );
         if ($src == false) {
             throw new \Exception('Failed to open image '.$this->dir.'/'.$this->file );
         } else {
-            $dst = imagecreatetruecolor ( $newwidth, $newheight );
-            imagecopyresampled ( $dst, $src, 0, 0, 0, 0, $newwidth, $newheight, $width, $height );
-            $exif = exif_read_data ( $this->dir.'/'.$this->file );
+            $dst = \imagecreatetruecolor ( $newwidth, $newheight );
+            \imagecopyresampled ( $dst, $src, 0, 0, 0, 0, $newwidth, $newheight, $width, $height );
+            $exif = \exif_read_data ( $this->dir.'/'.$this->file );
             if (! empty ( $exif ['Orientation'] )) {
                 switch ($exif ['Orientation']) {
                     case 8 :
-                        $dst = imagerotate ( $dst, 90, 0 );
+                        $dst = \imagerotate ( $dst, 90, 0 );
                         break;
                     case 3 :
-                        $dst = imagerotate ( $dst, 180, 0 );
+                        $dst = \imagerotate ( $dst, 180, 0 );
                         break;
                     case 6 :
-                        $dst = imagerotate ( $dst, - 90, 0 );
+                        $dst = \imagerotate ( $dst, - 90, 0 );
                         break;
                 }
             }
-            if (imagejpeg ( $dst, $outfile, $qual ) == false)
+            if (\imagejpeg ( $dst, $outfile, $qual ) == false)
                 throw new \Exception('Failed to create resized image '.$dst);
         }
         return true;
