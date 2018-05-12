@@ -9,6 +9,9 @@ use photo\common\DBHelper;
 
 interface IPhotoDAO extends IDAO {
     public function getListByEvent(Event $oe): array;
+    public function getListByLocation(Location $loc): array;
+    public function getListByPerson(Person $psn): array;
+    public function createPeopleLink(Photo &$o);
 }
 
 class PhotoDAO extends AbstractDAO implements IPhotoDAO {
@@ -21,8 +24,18 @@ class PhotoDAO extends AbstractDAO implements IPhotoDAO {
         }
         return self::$__instance;
     }
+
+    public function getListByEvent(Event $oe): array {
+        return [];
+    }
+    public function getListByLocation(Location $loc): array {
+        return [];        
+    }
+    public function getListByPerson(Person $psn): array {
+        return [];
+    }
     
-    public function getListByEvent(Event $oe):array {return [];}
+    public function createPeopleLink(Photo &$o) { }
 }
 
 
@@ -46,6 +59,15 @@ class PhotoDAO_pgsql extends DAO_pgsql implements IPhotoDAO {
         ];
         $this->keys = ['id'];
         $this->db_keys = ['photoid'];
+    }
+    
+    public function createPeopleLink(Photo &$o) {
+        $pdo = DBHelper::getPDO();
+        $sql = "INSERT INTO public.ppl2photo (photoid,pplid) VALUES(?,?)";
+        $stmt = $pdo->prepare($sql);
+        foreach ($o->people as $p2p) {
+            if(!$stmt->execute([$o->id,$p2p])) throw new \Exception("Failed to link person ID ".$p2p." to photo ".$o->id);
+        }        
     }
     
     public function getList($listOfPK=null): array {
@@ -88,7 +110,7 @@ class PhotoDAO_pgsql extends DAO_pgsql implements IPhotoDAO {
         return $a;
     }
     
-    public function getListByPerson(Person $psn) {
+    public function getListByPerson(Person $psn): array {
         //list of photos for person, used in person page
         //prefill people on photos
         $a=[];
@@ -118,7 +140,7 @@ class PhotoDAO_pgsql extends DAO_pgsql implements IPhotoDAO {
         return $a;                
     }
     
-    public function getListByLocation(Location $loc) {
+    public function getListByLocation(Location $loc):array {
         //list of photos for location, used in location page
         //prefill people on photos
         $sql = 'SELECT p.photoid, pplid FROM photos p JOIN ppl2photo p2p ON p2p.photoid = p.photoid '.
@@ -143,11 +165,8 @@ class PhotoDAO_pgsql extends DAO_pgsql implements IPhotoDAO {
             $a[] = $o;
         }
         return $a;
-        
     }
-    
-    
-    
+        
     public static function getInstance()
     {
         if(static::$__instance==null) {

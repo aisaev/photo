@@ -22,8 +22,10 @@ use photo\Model\Event;
 use photo\Model\Location;
 use photo\Model\Person;
 
-class ToolsAPI
+final class ToolsAPI
 {
+    private $oDir = NULL;
+    
     public function process()
     {
         if (! isset($_GET['op'])) {
@@ -36,31 +38,10 @@ class ToolsAPI
                 return $this->auditPhotos();
             case 'db':
                 //single dir
-                if(!isset($_POST['d'])) {
-                    throw new \Exception("Invalid arguments");
-                }
-                $dir = filter_var($_POST['d'],FILTER_SANITIZE_STRING);
-                if($dir===FALSE) {
-                    throw new \Exception("Invalid arguments, RC=2");
-                } elseif (!is_dir(Config::DIR_UNPROCESSED.$dir)) {
-                    throw new \Exception("Invalid arguments, RC=3");
-                }
-                $oDir = new PhotoDir(self::DIR_UNPROCESSED,$dir);
-                $oDir->collect();
-                $dir_defaults = [];
-                $dir_defaults[$dir] = $this->buildDirDefault($_POST);
-                $oDir->updateFromPOST($dir_defaults);
-                return $oDir->saveDB();
+                return $this->saveDir();
                 
             case 'draft':
-                //save draft
-                if(!isset($_POST['d'])) throw new \Exception("Invalid arguments");
-                $oDir = $this->collectPhotos();
-                $dir_defaults = [];
-                foreach ($_POST['d'] as $dir) {
-                    $dir_defaults[$dir['d']] = $this->buildDirDefault($dir);
-                }
-                return $oDir->updateFromPOST($dir_defaults);
+                return $this->saveDraft();
                 
             case 'edevt':
                 if (!isset($_POST['f']))
@@ -133,11 +114,7 @@ class ToolsAPI
         }
     }
     
-    private function updatePhotosPerLocation() {
-        $dao = LocationDAO::getInstance()->refreshPPN();
-    }
-    
-    protected function auditPhotos() {
+    private function auditPhotos() {
         // get all photo IDs from DB that have event assignment
         $a = [];
         $pFiles = $this->prepareListOfPics();
@@ -181,102 +158,24 @@ class ToolsAPI
         // match DB to file
     }
     
-    protected function prepareListToResize()
-    {
-        // ReSize-Read Dirs - returns array of dirs in picsfull for files
-        // that don't have all smaller sizes
-        
-        // check if dirs exist
-        $this->checkCreateDir(Config::DIR_PICS);
-        $this->checkCreateDir(Config::DIR_TPICS);
-        
-        $dirNN = dir(Config::DIR_PICSFULL);
-        $a = [];
-        while (false !== ($l_d = $dirNN->read())) {
-            if ($l_d == '.' || $l_d == '..')
-                continue;
-                if (! is_dir(Config::DIR_PICSFULL . $l_d))
-                    continue;
-                    $l_dp = Config::DIR_PICS . $l_d . '/';
-                    $l_dt = Config::DIR_TPICS . $l_d . '/';
-                    
-                    $this->checkCreateDir($l_dp);
-                    $this->checkCreateDir($l_dt);
-                    
-                    $files = dir(Config::DIR_PICSFULL . $l_d);
-                    while (false !== ($l_f = $files->read())) {
-                        // only consider JPG files
-                        if ($l_f == '.' || $l_f == '..') {
-                            continue;
-                        }
-                        if (is_dir(Config::DIR_PICSFULL . $l_d . '/'.$l_f)) {
-                            continue;
-                        }
-                        if (preg_match('/^\d\d\d\d\d\.jpg$/', $l_f) == 0) {
-                            continue;
-                        }
-                        // check if "pic" and "tmb" exist
-                        if (! file_exists($l_dp . $l_f) || ! file_exists($l_dt . $l_f) 
-                            || filesize($l_dp . $l_f)==0 || filesize($l_dt . $l_f)==0) {
-                            $a[] = $l_f;
-                        }
-                    }
-        }
-        sort($a);
-        return $a;
+    private function buildDirDefault($dir) {
+        return [
+            'e'=>isset($dir['e'])?intval($dir['e']):0,
+            'l'=>isset($dir['l'])?intval($dir['l']):0,
+            'p'=>isset($dir['p'])&&is_array($dir['p'])?$dir['p']:[],
+            'f'=>isset($dir['f'])&&is_array($dir['f'])?$dir['f']:[]
+        ];
     }
     
-    private function prepareListOfPics()
+    private function checkCreateDir($d)
     {
-        $dirNN = dir(Config::DIR_PICSFULL);
-        $a = [];
-        while (false !== ($l_d = $dirNN->read())) {
-            if ($l_d == '.' || $l_d == '..' || ! is_dir(Config::DIR_PICSFULL . $l_d)) {
-                continue;
+        if (! file_exists($d)) {
+            if (! mkdir($d)) {
+                throw new \Exception("Failed to create " . $d);
             }
-            $dNN=Config::DIR_PICSFULL . $l_d.'/';
-            $files = dir($dNN);
-            while (false !== ($l_f = $files->read())) {
-                // only consider .jpg files
-                if ($l_f == '.' || $l_f == '..' ||
-                    is_dir($dNN. $l_f) ||
-                    preg_match('/^\d\d\d\d\d\.jpg$/', $l_f) == 0) {
-                        continue;
-                    }
-                    if(filesize($dNN. $l_f)>0) {
-                        $a[$l_f]=true;
-                    }
-                        
-            }
+        } elseif (! is_dir($d)) {
+            throw new \Exception($d . " is not a directory");
         }
-        return $a;
-    }
-    
-    private function editPerson() {
-        $oPerson = new Person();
-        $oPerson->initFromPOST($_POST);
-        return array('id' => $oPerson->db_save());
-    }
-    
-    private function prepareListOfDBPhotos() {
-        $a = PhotoDAO::getInstance()->getList();
-        return $a;
-        
-    }
-    
-    private function prepareSmallerPics($f)
-    {
-        // make sure file name is kosher
-        if (preg_match('/^\d\d\d\d\d\.jpg$/', $f) == 0) {
-            return 'Bad file name ' . $f;
-        }
-        try {
-            $this->createSingleThumb(Config::DIR_PICS, $f);
-            $this->createSingleThumb(Config::DIR_TPICS, $f);
-        } catch (\Exception $e) {
-            return $e->getMessage();
-        }
-        return 1;
     }
     
     private function collectPhotos() {
@@ -312,24 +211,119 @@ class ToolsAPI
         $oPic->resize_image($w, $h, $fn_dst, $q);
     }
     
-    protected function buildDirDefault($dir) {
-        return [
-            'e'=>isset($dir['e'])?intval($dir['e']):0,
-            'l'=>isset($dir['l'])?intval($dir['l']):0,
-            'p'=>isset($dir['p'])&&is_array($dir['p'])?$dir['p']:[],
-            'f'=>isset($dir['f'])&&is_array($dir['f'])?$dir['f']:[]
-        ];
+    private function prepareListOfDBPhotos() {
+        $a = PhotoDAO::getInstance()->getList();
+        return $a;
+        
     }
     
-    private function checkCreateDir($d)
+    private function prepareListOfPics()
     {
-        if (! file_exists($d)) {
-            if (! mkdir($d)) {
-                throw new \Exception("Failed to create " . $d);
+        $dirNN = dir(Config::DIR_PICSFULL);
+        $a = [];
+        while (false !== ($l_d = $dirNN->read())) {
+            if ($l_d == '.' || $l_d == '..' || ! is_dir(Config::DIR_PICSFULL . $l_d)) {
+                continue;
             }
-        } elseif (! is_dir($d)) {
-            throw new \Exception($d . " is not a directory");
+            $dNN=Config::DIR_PICSFULL . $l_d.'/';
+            $files = dir($dNN);
+            while (false !== ($l_f = $files->read())) {
+                // only consider .jpg files
+                if ($l_f == '.' || $l_f == '..' ||
+                    is_dir($dNN. $l_f) ||
+                    preg_match('/^\d\d\d\d\d\.jpg$/', $l_f) == 0) {
+                        continue;
+                    }
+                    if(filesize($dNN. $l_f)>0) {
+                        $a[$l_f]=true;
+                    }
+                    
+            }
         }
+        return $a;
     }
+    
+    private function prepareListToResize()
+    {
+        // ReSize-Read Dirs - returns array of dirs in picsfull for files
+        // that don't have all smaller sizes
+        
+        // check if dirs exist
+        $this->checkCreateDir(Config::DIR_PICS);
+        $this->checkCreateDir(Config::DIR_TPICS);
+        
+        $dirNN = dir(Config::DIR_PICSFULL);
+        $a = [];
+        while (false !== ($l_d = $dirNN->read())) {
+            if ($l_d == '.' || $l_d == '..')
+                continue;
+                if (! is_dir(Config::DIR_PICSFULL . $l_d))
+                    continue;
+                    $l_dp = Config::DIR_PICS . $l_d . '/';
+                    $l_dt = Config::DIR_TPICS . $l_d . '/';
+                    
+                    $this->checkCreateDir($l_dp);
+                    $this->checkCreateDir($l_dt);
+                    
+                    $files = dir(Config::DIR_PICSFULL . $l_d);
+                    while (false !== ($l_f = $files->read())) {
+                        // only consider JPG files
+                        if ($l_f == '.' || $l_f == '..') {
+                            continue;
+                        }
+                        if (is_dir(Config::DIR_PICSFULL . $l_d . '/'.$l_f)) {
+                            continue;
+                        }
+                        if (preg_match('/^\d\d\d\d\d\.jpg$/', $l_f) == 0) {
+                            continue;
+                        }
+                        // check if "pic" and "tmb" exist
+                        if (! file_exists($l_dp . $l_f) || ! file_exists($l_dt . $l_f)
+                            || filesize($l_dp . $l_f)==0 || filesize($l_dt . $l_f)==0) {
+                                $a[] = $l_f;
+                            }
+                    }
+        }
+        sort($a);
+        return $a;
+    }
+    
+    private function prepareSmallerPics($f)
+    {
+        // make sure file name is kosher
+        if (preg_match('/^\d\d\d\d\d\.jpg$/', $f) == 0) {
+            return 'Bad file name ' . $f;
+        }
+        try {
+            $this->createSingleThumb(Config::DIR_PICS, $f);
+            $this->createSingleThumb(Config::DIR_TPICS, $f);
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+        return 1;
+    }
+    
+    private function saveDir() {
+        if(!$this->saveDraft()) {
+            return false;
+        }
+        return $this->oDir->saveDB();
+    }
+    
+    private function saveDraft() {
+        //save draft
+        if(!isset($_POST['d'])) throw new \Exception("Invalid arguments");
+        $this->oDir = $this->collectPhotos();
+        $dir_defaults = [];
+        foreach ($_POST['d'] as $dir) {
+            $dir_defaults[$dir['d']] = $this->buildDirDefault($dir);
+        }
+        return $this->oDir->updateFromPOST($dir_defaults);        
+    }
+    
+    private function updatePhotosPerLocation() {
+        $dao = LocationDAO::getInstance()->refreshPPN();
+    }
+    
 }
 

@@ -6,8 +6,9 @@ use \DateTime;
 use \DateInterval;
 use \Exception;
 use photo\common\Config;
+use photo\DAO\PhotoDAO;
 
-class PhotoFile extends Photo implements \JsonSerializable {
+final class PhotoFile extends Photo implements \JsonSerializable {
 	public $filename = NULL;
 	private $filename_new = NULL;
 	public $unproc = true;	
@@ -62,62 +63,7 @@ class PhotoFile extends Photo implements \JsonSerializable {
 	    $this->taken_on = $tst->format('Y-m-d H:i:s');	    
 	}
 	
-	public function updateFromPOST($file_data) {
-		$changed = FALSE;
-		$location = 0;
-		if(isset($file_data['l'])) {
-			$location = intval($file_data['l']);
-		}
-		if($changed = ($this->location != $location)) {
-		    $this->location = $location;
-		}
-		
-		
-		$people=[];
-		if(isset($file_data['p'])) {
-			foreach ($file_data['p'] as $pid) {
-				$people[] = intval($pid);
-			}
-			sort($people);
-		}
-		if($people!=$this->people) {
-			$this->people = $people;
-			$changed = true;
-		}
-
-		if(isset($file_data['s'])) {
-		    $seq = intval($file_data['s']);
-		    if($seq > 0 && $seq != $this->seq) {
-		        $this->seq = $seq;
-		        $changed = true;
-		    }
-		}
-
-		if(isset($file_data['dt'])) {
-		    if($this->taken_on != $file_data['dt']) {
-		        $this->taken_on = $file_data['dt'];
-		        $changed = true;
-		    }
-		}
-		
-		if(isset($file_data['cr'])) {
-		    if($this->comment != $file_data['cr']) {
-		        $this->comment = $file_data['cr'];
-		        $changed = true;
-		    }
-		}
-
-		if(isset($file_data['ce'])) {
-		    if($this->commente != $file_data['ce']) {
-		        $this->commente = $file_data['ce'];
-		        $changed = true;
-		    }
-		}
-		
-		return $changed;
-	}
-
-	protected function convertExifGeo($coord,$ewns) {
+	private function convertExifGeo($coord,$ewns) {
 		$ll = NULL;
 		if(is_array($coord)) {
 			$i=1;
@@ -142,22 +88,6 @@ class PhotoFile extends Photo implements \JsonSerializable {
 		return $ll;
 	}
 	
-	public function jsonSerialize() {
-		return [
-		    'fn' => $this->filename,
-		    'dt' => $this->taken_on,
-		    'lt' => $this->geo_lat,
-		    'ln' => $this->geo_lon,
-		    'e' => $this->event,
-		    's' => $this->seq,
-		    'l' => $this->location,
-		    'p' => $this->people,
-		    'i' => $this->id,
-		    'cr' => $this->comment,
-		    'ce' => $this->commente
-		];
-	}
-	
 	public function copyToArchive($dir_src) {
 	    if($this->id==0) throw new Exception('Photo ID is 0 for'.$this->filename);
 	    if($this->id > 99999) throw new Exception('Photo ID limit reached');
@@ -177,11 +107,6 @@ class PhotoFile extends Photo implements \JsonSerializable {
 	    $fn_dst = $dir_dst.'/'.$fn_short;
 	    if(!copy($fn_src,$fn_dst)) throw new Exception('Failed to copy '.$fn_src.' to '.$fn_dst);
 	    $this->filename_new = $fn_short;
-	}
-	
-	public function resizeImage($force=FALSE) {
-	    $this->createSingleThumb(Config::DIR_PICS, $force);
-	    $this->createSingleThumb(Config::DIR_TPICS, $force);
 	}
 	
 	private function createSingleThumb($size,$force) {
@@ -211,17 +136,95 @@ class PhotoFile extends Photo implements \JsonSerializable {
 	    $oPic->resize_image($w, $h, $fn_dst,$q);
 	}
 	
+	public function jsonSerialize() {
+	    return [
+	        'fn' => $this->filename,
+	        'dt' => $this->taken_on,
+	        'lt' => $this->geo_lat,
+	        'ln' => $this->geo_lon,
+	        'e' => $this->event,
+	        's' => $this->seq,
+	        'l' => $this->location,
+	        'p' => $this->people,
+	        'i' => $this->id,
+	        'cr' => $this->comment,
+	        'ce' => $this->commente
+	    ];
+	}
+	
+	public function resizeImage($force=FALSE) {
+	    $this->createSingleThumb(Config::DIR_PICS, $force);
+	    $this->createSingleThumb(Config::DIR_TPICS, $force);
+	}
+	
 	public function saveDB(Photo $defaults) {
 	    if($this->event==0) $this->event = $defaults->event;
 	    if($this->location==0) $this->location = $defaults->location;
 	    if($this->id==0) {
 	        //new
-	        $this->newID = $this->db_insert($this->id);
+	        $dao = PhotoDAO::getInstance();
+	        $dao->create($this);
 	        foreach ($this->people as $p2p) {
 	            if(pg_query_params("INSERT INTO public.ppl2photo (photoid,pplid) VALUES($1,$2)",array($this->id,$p2p))===FALSE)
 	                throw new Exception(pg_last_error());
 	        }
 	    }
 	}
+	
+	public function updateFromPOST($file_data) {
+	    $changed = FALSE;
+	    $location = 0;
+	    if(isset($file_data['l'])) {
+	        $location = intval($file_data['l']);
+	    }
+	    if($changed = ($this->location != $location)) {
+	        $this->location = $location;
+	    }
+	    
+	    
+	    $people=[];
+	    if(isset($file_data['p'])) {
+	        foreach ($file_data['p'] as $pid) {
+	            $people[] = intval($pid);
+	        }
+	        sort($people);
+	    }
+	    if($people!=$this->people) {
+	        $this->people = $people;
+	        $changed = true;
+	    }
+	    
+	    if(isset($file_data['s'])) {
+	        $seq = intval($file_data['s']);
+	        if($seq > 0 && $seq != $this->seq) {
+	            $this->seq = $seq;
+	            $changed = true;
+	        }
+	    }
+	    
+	    if(isset($file_data['dt'])) {
+	        if($this->taken_on != $file_data['dt']) {
+	            $this->taken_on = $file_data['dt'];
+	            $changed = true;
+	        }
+	    }
+	    
+	    if(isset($file_data['cr'])) {
+	        if($this->comment != $file_data['cr']) {
+	            $this->comment = $file_data['cr'];
+	            $changed = true;
+	        }
+	    }
+	    
+	    if(isset($file_data['ce'])) {
+	        if($this->commente != $file_data['ce']) {
+	            $this->commente = $file_data['ce'];
+	            $changed = true;
+	        }
+	    }
+	    
+	    return $changed;
+	}
+	
 }
 ?>

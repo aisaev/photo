@@ -89,5 +89,10 @@ final class Person extends DBModel implements \JsonSerializable
             $a['c'] = $this->country_of_origin;
         return $a;
     }
+    
+    public function validateAfterEntry() {
+        if ($this->name_e==NULL) $this->name_e = $this->name_r;
+        if ($this->aka_e==NULL) $this->aka_e = $this->aka_r;
+    }
 }
 ?>

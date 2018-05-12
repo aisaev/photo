@@ -133,229 +133,6 @@ var placeTree = [];
 var modalCaller = false;
 var saveBtn=[];
 
-function getUrlParameter(sParam) {
-    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
-        sURLVariables = sPageURL.split('&'),
-        sParameterName,
-        i;
-
-    for (i = 0; i < sURLVariables.length; i++) {
-        sParameterName = sURLVariables[i].split('=');
-
-        if (sParameterName[0] === sParam) {
-            return sParameterName[1] === undefined ? true : sParameterName[1];
-        }
-    }
-    return '';
-};
-
-function openModal(e,isDir)
-{
-	var rebuild = false;
-	if(isDir)
-		modalCaller = $('form',$(e).closest('.panel-heading'));
-	else
-		modalCaller = $(e).closest('form');
-
-	var currentPlace = $(".placeid",modalCaller).val();
-	var currentPeople = $(".pplid",modalCaller).val();
-	var isDir = modalCaller.hasClass('dir-defaults');
-	if(isDir) {		
-		$("#elp h4").replaceWith('<h4>'+$('.dir',modalCaller).text()+'</h4>');
-		var eventId = $(".eventid", modalCaller).val(); 
-		$("#eventsel").val(eventId).trigger("change");
-
-	} else {
-		//file data
-		var dir = $(modalCaller).closest("div.panel");
-		var dirNameLast = $("#modal_parent").val();
-		var dirNameNow = $("h3.dir",dir).text();
-		if(dirNameLast!=dirNameNow) {
-			$("#modal_parent").val(dirNameNow);
-			rebuild = true;
-		}
-		if(currentPlace == '0' && $("#placesel").val()=='0')
-			currentPlace = $(".placeid",dir).val();
-	}
-	 
-	if(currentPlace!='0' && currentPlace != $("#current_place").val()) {
-		$("#placesel").html(buildPlacesOptions(currentPlace)).change();			
-	}
-	if(currentPeople!=null && currentPeople.length>0 || isDir)
-		$("#peoplesel").val(currentPeople).trigger("change");	
-	$("#elp").modal('show');
-}
-
-function renderCountrySelector() {
-	var html='';
-	for(var i=0;i<cfgCountries.length;i++) {
-		var optionEl=$("<option value='"+cfgCountries[i][0]+"'></option>");
-		optionEl.text(cfgCountries[i][1]==cfgCountries[i][2]?cfgCountries[i][1]:cfgCountries[i][1]+' | '+cfgCountries[i][2]);
-		html+=optionEl[0].outerHTML;		
-	}
-	$("#ppledit-c").html(html).select2();
-}
-
-function renderEventsSelector(parent) {
-	if(Object.keys(eventLookup).length > 0) return;
-	
- 	var len = events.r.length;
- 	var seldata = [{id:0,text:''}];
- 	
- 	for(var i=0;i<len;i++) {		
- 		var o = events.r[i];
- 		if(!o.e) o.e=o.r;
- 		if(o.s) {} else o.s=false;
- 		o.df = [o.f.substr(0,4),o.f.substr(5,2),o.f.substr(8,2)];
- 		var dr=o.f.replace(/\-/g,'.');
- 		if(!o.t) {
- 			o.t=o.f;
- 			o.dt = o.df;
- 		} else {
- 			o.dt = [o.t.substr(0,4),o.t.substr(5,2),o.t.substr(8,2)];
- 			if(o.dt[0]!=o.df[0]) {
- 				dr='-'+o.dt.replace(/\-/g,'.');
- 			} else if(o.dt[1]!=o.df[1]) {
- 				dr = dr+'-'+o.t.substr(5).replace(/\-/g,'.');
- 			} else if(o.dt[2]!=o.df[2]) {
- 				dr+='-'+o.dt[2];
- 			}
- 		}
- 		var oOption={id:o.i,text:"("+dr+") "+o.r+(o.r==o.e?'':" | "+o.e)};
- 		seldata.push(oOption);
- 		eventLookup[o.i] = oOption;
- 	}
- 	$("#eventsel").select2({data:seldata,theme:"bootstrap",dropdownParent: parent});
-}
-
-function buildPlacesOptions(parentLoc)
-{
-	$("#current_place").val(parentLoc);
-	var allowedPlaces = [];
-	allowedPlaces['0']=true;
-	pickPlacesToShow(parentLoc,allowedPlaces);
-
- 	var len = places.r.length;
- 	var html='<option value="0">Not selected</option>';
-
- 	for(var i=0;i<len;i++) { 		
- 		var o = places.r[i];
- 		if(parentLoc=='0' || allowedPlaces[o.id]) {
- 			var el=$('<option value="'+o.id+'"'+(parentLoc==o.id?' selected':'')+'></option>');
- 			el.text(placeLookup[o.id].text);
- 			html+=el[0].outerHTML;
- 		}
- 	}
- 	return html; 	
-}
-
-function prepPlaceData() {
- 	var len = places.r.length;
- 	
- 	//build tree and index
-	for(var i=0;i<len;i++) {
-	 	var o = places.r[i];
-	 	placeById[o.id] = o;
-	 	if(typeof placeTree[o.p] === 'undefined') placeTree[o.p] = [];
-	 	placeTree[o.p].push(o.id);	 		
- 	}
-	
- 	for(var i=0;i<len;i++) { 		
- 		var o = places.r[i];
- 		var oP = placeById[o.p];
- 		if (typeof oP == 'undefined' && o.p!='0') {
- 			alert("Messed up parent "+o.p+" in node "+o.id);
- 			return;
- 		}
- 		//use ^ in beginning of string to lookup places that start with this
- 		var oOption={id:o.id,text:'^'+o.dr+(o.dr==o.de?'':" | ^"+o.de)+(o.p=="0"?'':'  (in '+oP.dr+(oP.dr==oP.de?'':" | "+oP.de)+')')};
- 		placeLookup[o.id] = oOption;
- 	}	
-}
-
-function prepModal() {
-	$(".modal").on('hidden.bs.modal',function(event) {
-		$(this).removeClass('fv-modal-stack');
-		$('body').data('fv_open_modals',$('body').data('fv_open_modals') - 1);
-	})
-	.on('shown.bs.modal',function(event){
-        // keep track of the number of open modals        
-        if ( typeof( $('body').data( 'fv_open_modals' ) ) == 'undefined' )
-        {
-          $('body').data( 'fv_open_modals', 0 );
-        }
-        
-        // if the z-index of this modal has been set, ignore.
-        if ( $(this).hasClass( 'fv-modal-stack' ) )
-        {
-             return;
-        }
-        
-        $(this).addClass( 'fv-modal-stack' );
-
-        $('body').data( 'fv_open_modals', $('body').data( 'fv_open_modals' ) + 1 );
-        
-        $(this).css('z-index', 1040 + (10 * $('body').data( 'fv_open_modals' )));
-
-        $( '.modal-backdrop' ).not( '.fv-modal-stack' )
-             .css( 'z-index', 1039 + (10 * $('body').data( 'fv_open_modals' )));
-
-
-        $( '.modal-backdrop' ).not( 'fv-modal-stack' )
-             .addClass( 'fv-modal-stack' ); 
-
-	});
-}
-
-function prepPeopleData() {
-	var len = people.r.length;
-	
-	for(var i=0;i<len;i++) {
-		var o=people.r[i];
-		var optionEl = $("<option value='"+o.id+"'></option>");
-		var nameR = o.n+(o.aka?" AKA "+o.aka:'');
-		var nameE = o.ne+(o.akae?" AKA "+o.akae:'');
-		var optionData = {id:o.id,text:nameR+(nameR==nameE?'':' | '+nameE)+(o.c?' (from '+o.c+')':'')};
-		peopleLookup[o.id] = optionData;
-	}
-	
-}
-
-function sqlDate(dt) {
-	var s=dt.getFullYear()+'-';
-	var dd=dt.getMonth()+1;
-	if(dd<10) dd='0'+dd;
-	s+=dd+'-';
-	dd=dt.getDate();
-	if(dd<10) dd='0'+dd;
-	s+=dd+' ';
-	dd=dt.getHours();
-	if(dd<10) dd='0'+dd;
-	s+=dd+':';
-	dd=dt.getMinutes();
-	if(dd<10) dd='0'+dd;
-	s+=dd+':';
-	dd=dt.getSeconds();
-	if(dd<10) dd='0'+dd;
-	return s+dd;
-	
-}
-
-function editEvent(id=0) {
-	if(id==0) {
-		$("#evtedit form input").val('');
-	} else {
-		
-	}
-	$("#evtedit form input[name='i']").val(id);
-	$("#evtedit").modal('show');
-}
-
-function editPerson(id=0) {
-	$("#ppledit form input[name='id']").val(id);
-	$("#ppledit").modal('show');
-}
-
 function addMinutes(date,minutes) {
 	return new Date(date.getTime()+minutes*60000);
 }
@@ -417,73 +194,25 @@ function buildPeopleOptions(ppltab,allSelect,id_only=true,ppldir=[]) {
 	return html;
 }
 
-function renderPeopleSelector(parentControl) {
-	$("#peoplesel").html(buildPeopleOptions(people.r,false,false));
- 	$("#peoplesel").select2({
- 		tags:true,
- 		theme:"bootstrap",
- 		dropdownParent: parentControl,
- 		minimumResultsForSearch:5
- 	});
-}
+function buildPlacesOptions(parentLoc)
+{
+	$("#current_place").val(parentLoc);
+	var allowedPlaces = [];
+	allowedPlaces['0']=true;
+	pickPlacesToShow(parentLoc,allowedPlaces);
 
-function renderPlacesSelector(parentControl) {
-	$("#placesel").html(buildPlacesOptions(0));
- 	$("#placesel").select2({
- 		allowClear: true,
- 		placeholder: "Select place",
- 		theme:"bootstrap",
- 		dropdownParent: parentControl,
- 		minimumResultsForSearch:5
- 	}).on('select2:select',function(e){
- 		var currentPlace = e.params.data.id;
- 		if(placeTree[currentPlace].length>0) {
- 			$("#placesel").html(buildPlacesOptions(currentPlace)).change();
- 		} 			
- 	}).on('select2:unselect',function(e){
- 		$("#placesel").html(buildPlacesOptions("0")).change();
- 	});
-}
+ 	var len = places.r.length;
+ 	var html='<option value="0">Not selected</option>';
 
-function pickPlacesToShow(parentLoc,result) {
-	result[parentLoc]=true;
-	var children = placeTree[parentLoc];
-	if(typeof children != 'undefined') {
-		for(var i=0;i<children.length;i++)
-			pickPlacesToShow(children[i],result);
-	}
-}
-
-function collectDirData(el) {
-	var dirCollected = {};
-	$(".dir-defaults",el).each(function(){		
-		dirCollected = {
-				d:$(".dir",this).text(),
-				e:$("input.eventid",this).val(),
-				l:$("input.placeid",this).val(),
-				p:$("select.pplid",this).val(),
-				f:[]
-			};
-		//file data
-		var seq=1;
-		$("form.file-data",el).each(function(){
-			var fileCollected = {
-					f:$("h3",this).text(),
-					l:$("input.placeid",this).val(),
-					p:$("select.pplid",this).val(),
-					s:seq++,
-					dt:$(".taken-on",this).text(),
-					i:$("input[name='id']").val() 
-			};
-			if($("input[name='cr']",this).is(":visible")) {
-				fileCollected.cr = $("input[name='cr']",this).val();
-				fileCollected.ce = $("input[name='ce']",this).val();				
-			}
-			dirCollected.f.push(fileCollected);
-		});
-
-	});
-	return dirCollected;	
+ 	for(var i=0;i<len;i++) { 		
+ 		var o = places.r[i];
+ 		if(parentLoc=='0' || allowedPlaces[o.id]) {
+ 			var el=$('<option value="'+o.id+'"'+(parentLoc==o.id?' selected':'')+'></option>');
+ 			el.text(placeLookup[o.id].text);
+ 			html+=el[0].outerHTML;
+ 		}
+ 	}
+ 	return html; 	
 }
 
 function callSave(o,op) {
@@ -524,6 +253,257 @@ function callSave(o,op) {
 	});
 }
 
+function collectDirData(el) {
+	var dirCollected = {};
+	$(".dir-defaults",el).each(function(){		
+		dirCollected = {
+				d:$(".dir",this).text(),
+				e:$("input.eventid",this).val(),
+				l:$("input.placeid",this).val(),
+				p:$("select.pplid",this).val(),
+				f:[]
+			};
+		//file data
+		var seq=1;
+		$("form.file-data",el).each(function(){
+			var fileCollected = {
+					f:$("h3",this).text(),
+					l:$("input.placeid",this).val(),
+					p:$("select.pplid",this).val(),
+					s:seq++,
+					dt:$(".taken-on",this).text(),
+					i:$("input[name='id']").val() 
+			};
+			if($("input[name='cr']",this).is(":visible")) {
+				fileCollected.cr = $("input[name='cr']",this).val();
+				fileCollected.ce = $("input[name='ce']",this).val();				
+			}
+			dirCollected.f.push(fileCollected);
+		});
+
+	});
+	return dirCollected;	
+}
+
+function editEvent(id=0) {
+	if(id==0) {
+		$("#evtedit form input").val('');
+	} else {
+		
+	}
+	$("#evtedit form input[name='i']").val(id);
+	$("#evtedit").modal('show');
+}
+
+function editPerson(id=0) {
+	$("#ppledit form input[name='id']").val(id);
+	$("#ppledit").modal('show');
+}
+
+function pickPlacesToShow(parentLoc,result) {
+	result[parentLoc]=true;
+	var children = placeTree[parentLoc];
+	if(typeof children != 'undefined') {
+		for(var i=0;i<children.length;i++)
+			pickPlacesToShow(children[i],result);
+	}
+}
+
+function getUrlParameter(sParam) {
+    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+    return '';
+};
+
+function openModal(e,isDir)
+{
+	var rebuild = false;
+	if(isDir)
+		modalCaller = $('form',$(e).closest('.panel-heading'));
+	else
+		modalCaller = $(e).closest('form');
+
+	var currentPlace = $(".placeid",modalCaller).val();
+	var currentPeople = $(".pplid",modalCaller).val();
+	var isDir = modalCaller.hasClass('dir-defaults');
+	if(isDir) {		
+		$("#elp h4").replaceWith('<h4>'+$('.dir',modalCaller).text()+'</h4>');
+		var eventId = $(".eventid", modalCaller).val(); 
+		$("#eventsel").val(eventId).trigger("change");
+
+	} else {
+		//file data
+		var dir = $(modalCaller).closest("div.panel");
+		var dirNameLast = $("#modal_parent").val();
+		var dirNameNow = $("h3.dir",dir).text();
+		if(dirNameLast!=dirNameNow) {
+			$("#modal_parent").val(dirNameNow);
+			rebuild = true;
+		}
+		if(currentPlace == '0' && $("#placesel").val()=='0')
+			currentPlace = $(".placeid",dir).val();
+	}
+	 
+	if(currentPlace!='0' && currentPlace != $("#current_place").val()) {
+		$("#placesel").html(buildPlacesOptions(currentPlace)).change();			
+	}
+	if(currentPeople!=null && currentPeople.length>0 || isDir)
+		$("#peoplesel").val(currentPeople).trigger("change");	
+	$("#elp").modal('show');
+}
+
+function prepModal() {
+	$(".modal").on('hidden.bs.modal',function(event) {
+		$(this).removeClass('fv-modal-stack');
+		$('body').data('fv_open_modals',$('body').data('fv_open_modals') - 1);
+	})
+	.on('shown.bs.modal',function(event){
+        // keep track of the number of open modals        
+        if ( typeof( $('body').data( 'fv_open_modals' ) ) == 'undefined' )
+        {
+          $('body').data( 'fv_open_modals', 0 );
+        }
+        
+        // if the z-index of this modal has been set, ignore.
+        if ( $(this).hasClass( 'fv-modal-stack' ) )
+        {
+             return;
+        }
+        
+        $(this).addClass( 'fv-modal-stack' );
+
+        $('body').data( 'fv_open_modals', $('body').data( 'fv_open_modals' ) + 1 );
+        
+        $(this).css('z-index', 1040 + (10 * $('body').data( 'fv_open_modals' )));
+
+        $( '.modal-backdrop' ).not( '.fv-modal-stack' )
+             .css( 'z-index', 1039 + (10 * $('body').data( 'fv_open_modals' )));
+
+
+        $( '.modal-backdrop' ).not( 'fv-modal-stack' )
+             .addClass( 'fv-modal-stack' ); 
+
+	});
+}
+
+function prepPeopleData() {
+	var len = people.r.length;
+	
+	for(var i=0;i<len;i++) {
+		var o=people.r[i];
+		var optionEl = $("<option value='"+o.id+"'></option>");
+		var nameR = o.n+(o.aka?" AKA "+o.aka:'');
+		var nameE = o.ne+(o.akae?" AKA "+o.akae:'');
+		var optionData = {id:o.id,text:nameR+(nameR==nameE?'':' | '+nameE)+(o.c?' (from '+o.c+')':'')};
+		peopleLookup[o.id] = optionData;
+	}
+	
+}
+
+function prepPlaceData() {
+ 	var len = places.r.length;
+ 	
+ 	//build tree and index
+	for(var i=0;i<len;i++) {
+	 	var o = places.r[i];
+	 	placeById[o.id] = o;
+	 	if(typeof placeTree[o.p] === 'undefined') placeTree[o.p] = [];
+	 	placeTree[o.p].push(o.id);	 		
+ 	}
+	
+ 	for(var i=0;i<len;i++) { 		
+ 		var o = places.r[i];
+ 		var oP = placeById[o.p];
+ 		if (typeof oP == 'undefined' && o.p!='0') {
+ 			alert("Messed up parent "+o.p+" in node "+o.id);
+ 			return;
+ 		}
+ 		//use ^ in beginning of string to lookup places that start with this
+ 		var oOption={id:o.id,text:'^'+o.dr+(o.dr==o.de?'':" | ^"+o.de)+(o.p=="0"?'':'  (in '+oP.dr+(oP.dr==oP.de?'':" | "+oP.de)+')')};
+ 		placeLookup[o.id] = oOption;
+ 	}	
+}
+
+function renderCountrySelector() {
+	var html='';
+	for(var i=0;i<cfgCountries.length;i++) {
+		var optionEl=$("<option value='"+cfgCountries[i][0]+"'></option>");
+		optionEl.text(cfgCountries[i][1]==cfgCountries[i][2]?cfgCountries[i][1]:cfgCountries[i][1]+' | '+cfgCountries[i][2]);
+		html+=optionEl[0].outerHTML;		
+	}
+	$("#ppledit-c").html(html).select2();
+}
+
+function renderEventsSelector(parent) {
+	if(Object.keys(eventLookup).length > 0) return;
+	
+ 	var len = events.r.length;
+ 	var seldata = [{id:0,text:''}];
+ 	
+ 	for(var i=0;i<len;i++) {		
+ 		var o = events.r[i];
+ 		if(!o.e) o.e=o.r;
+ 		if(o.s) {} else o.s=false;
+ 		o.df = [o.f.substr(0,4),o.f.substr(5,2),o.f.substr(8,2)];
+ 		var dr=o.f.replace(/\-/g,'.');
+ 		if(!o.t) {
+ 			o.t=o.f;
+ 			o.dt = o.df;
+ 		} else {
+ 			o.dt = [o.t.substr(0,4),o.t.substr(5,2),o.t.substr(8,2)];
+ 			if(o.dt[0]!=o.df[0]) {
+ 				dr='-'+o.dt.replace(/\-/g,'.');
+ 			} else if(o.dt[1]!=o.df[1]) {
+ 				dr = dr+'-'+o.t.substr(5).replace(/\-/g,'.');
+ 			} else if(o.dt[2]!=o.df[2]) {
+ 				dr+='-'+o.dt[2];
+ 			}
+ 		}
+ 		var oOption={id:o.i,text:"("+dr+") "+o.r+(o.r==o.e?'':" | "+o.e)};
+ 		seldata.push(oOption);
+ 		eventLookup[o.i] = oOption;
+ 	}
+ 	$("#eventsel").select2({data:seldata,theme:"bootstrap",dropdownParent: parent});
+}
+
+function renderPeopleSelector(parentControl) {
+	$("#peoplesel").html(buildPeopleOptions(people.r,false,false));
+ 	$("#peoplesel").select2({
+ 		tags:true,
+ 		theme:"bootstrap",
+ 		dropdownParent: parentControl,
+ 		minimumResultsForSearch:5
+ 	});
+}
+
+function renderPlacesSelector(parentControl) {
+	$("#placesel").html(buildPlacesOptions(0));
+ 	$("#placesel").select2({
+ 		allowClear: true,
+ 		placeholder: "Select place",
+ 		theme:"bootstrap",
+ 		dropdownParent: parentControl,
+ 		minimumResultsForSearch:5
+ 	}).on('select2:select',function(e){
+ 		var currentPlace = e.params.data.id;
+ 		if(placeTree[currentPlace].length>0) {
+ 			$("#placesel").html(buildPlacesOptions(currentPlace)).change();
+ 		} 			
+ 	}).on('select2:unselect',function(e){
+ 		$("#placesel").html(buildPlacesOptions("0")).change();
+ 	});
+}
+
 function Save(op)
 {
 	$(".loader h2").text("Saving draft...");
@@ -535,13 +515,6 @@ function Save(op)
 	});
 	
 	callSave(o,op);
-}
-
-function SaveEventDir(el) {
-	$(".loader h2").text("Saving in DB");
-	$(".loader").show();
-	var o = collectDirData($(el).closest('.dir.has-files'));
-	callSave(o,'db');
 }
 
 function saveEvent() {
@@ -570,6 +543,13 @@ function saveEvent() {
 		.fail(function(jqXHR,textStatus,errorThrown){
 			alert(errorThrown);
 		});
+}
+
+function SaveEventDir(el) {
+	$(".loader h2").text("Saving in DB");
+	$(".loader").show();
+	var o = collectDirData($(el).closest('.dir.has-files'));
+	callSave(o,'db');
 }
 
 function savePerson() {
@@ -608,6 +588,26 @@ function showComments(el) {
 	var parent = $(el).parent();
 	$(parent).remove();
 	$("div.comment",form).show();
+}
+
+function sqlDate(dt) {
+	var s=dt.getFullYear()+'-';
+	var dd=dt.getMonth()+1;
+	if(dd<10) dd='0'+dd;
+	s+=dd+'-';
+	dd=dt.getDate();
+	if(dd<10) dd='0'+dd;
+	s+=dd+' ';
+	dd=dt.getHours();
+	if(dd<10) dd='0'+dd;
+	s+=dd+':';
+	dd=dt.getMinutes();
+	if(dd<10) dd='0'+dd;
+	s+=dd+':';
+	dd=dt.getSeconds();
+	if(dd<10) dd='0'+dd;
+	return s+dd;
+	
 }
 
 function ToggleFiles(e) {

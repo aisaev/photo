@@ -5,65 +5,16 @@ require_once 'PhotoFile.class.php';
 require_once 'Thumbnail.class.php';
 use photo\Model\Photo;
 use \Exception;
+use photo\Model\DBModel;
+use photo\common\DBHelper;
 
-class PhotoDir implements \JsonSerializable {
-    protected $parent_dir = NULL;
+final class PhotoDir implements \JsonSerializable {
+    public $parent_dir = NULL;
 	public $dir = NULL;
 	public $files = [];
 	public $subdir = [];
 	
 	public $defaults = NULL;
-	
-	public function updateFromPOST($defaults) {
-		$file_idx=[];
-		$core = NULL;
-		if(isset($defaults[$this->dir])) {
-			$data = $defaults[$this->dir];
-			foreach ($data['f'] as $f) {
-				$file_idx[$f['f']]=$f;
-			}
-			if($data['e'] != '0') {
-				$core = new Photo();
-				$core->event = intval($data['e']);
-			}
-			if($data['l'] != '0') {
-				if($core==NULL) $core = new Photo();
-				$core->location = intval($data['l']);
-			}
-			foreach ($data['p'] as $ps) {
-				if($core==NULL) $core = new Photo();
-				$core->people[] = intval($ps);				
-			}
-		}
-		$path = $this->parent_dir.($this->dir==''?'':$this->dir.'/');
-		
-		if($core != $this->defaults) {
-			$this->defaults = $core;
-			$filedata = serialize($this->defaults);
-			$fname = $path.'dir.json';
-			if(file_put_contents($fname, $filedata)===false)
-				throw new Exception('Failed to create '.$fname);
-		}
-		
-		$seq = 1;
-		$changed=FALSE;		
-		foreach ($this->files as $oFile) {
-		    $oFile->seq = $seq++;
-		    if(isset($file_idx[$oFile->filename])) {
-		        $changed = ($oFile->updateFromPOST($file_idx[$oFile->filename]) || $changed);
-		    } 
-		}
-		if($changed) {
-			$json = serialize(['files' => $this->files]);
-			if(file_put_contents($path.'files.json', $json)===false)
-				throw new Exception('Failed to create '.$path.'files.json');				
-		}
-			
-		foreach ($this->subdir as $child_dir) {
-			$child_dir->updateFromPost($defaults);
-		}
-		return true;
-	}
 	
 	public function __construct($parent_dir,$dir_name) {
 	    $this->parent_dir = $parent_dir;
@@ -144,6 +95,11 @@ class PhotoDir implements \JsonSerializable {
         usort($this->subdir,function(PhotoDir $a,PhotoDir $b){ return strcmp($a->dir,$b->dir); });
 	}
 	
+	private function copyResized(PhotoFile $o) {
+	    $o->copyToArchive($this->parent_dir.$this->dir.'/');
+	    $o->resizeImage();
+	}
+	
 	public function jsonSerialize() {
 		return [
 				'd' => $this->dir,
@@ -155,11 +111,6 @@ class PhotoDir implements \JsonSerializable {
 		];
 	}
 	
-	protected function validate() {
-	    if($this->defaults->event==0) throw new Exception('Event required');
-	    if($this->defaults->location==0) throw new Exception('Event required');
-	}
-	
 	public function saveDB() {
 	    $this->validate();
 	    $is_first = TRUE;
@@ -167,13 +118,14 @@ class PhotoDir implements \JsonSerializable {
 	    try {
 	        foreach ($this->files as $oFile) {
 	            if($is_first) {
-	                if(pg_query('BEGIN')==FALSE) throw new Exception(pg_last_error());
+	                $pdo = DBHelper::getPDO();
+	                if($pdo->beginTransaction()==FALSE) throw new Exception("Failed to start transaction");
 	                $is_first = false;
 	            }
 	            $oFile->saveDB($this->defaults);
 	        }
 	        if(!$is_first) {
-	            if(pg_query('COMMIT')==FALSE) throw new Exception(pg_last_error());
+	            if($pdo->commit()==FALSE) throw new Exception("Failed to commit");
 	            else {
 	                $json = serialize(['files' => $this->files]);
 	                $saveResult = file_put_contents($cur_path.'/files.json', $json);	                
@@ -181,7 +133,7 @@ class PhotoDir implements \JsonSerializable {
 	        }	        
 	    } catch (Exception $e) {
 	        if($is_first) throw $e;
-	        if(pg_query('ROLLBACK')==FALSE) throw new Exception(pg_last_error());
+	        if($pdo->rollBack()==FALSE) throw new Exception("Failed to roll back");
 	    }
 	    //resize
 	    foreach ($this->files as $oFile) {
@@ -193,9 +145,60 @@ class PhotoDir implements \JsonSerializable {
         return true;
 	}
 
-	private function copyResized(PhotoFile $o) {
-	    $o->copyToArchive($this->parent_dir.$this->dir.'/');
-	    $o->resizeImage();
+	public function updateFromPOST($defaults) {
+	    $file_idx=[];
+	    $core = NULL;
+	    if(isset($defaults[$this->dir])) {
+	        $data = $defaults[$this->dir];
+	        foreach ($data['f'] as $f) {
+	            $file_idx[$f['f']]=$f;
+	        }
+	        if($data['e'] != '0') {
+	            $core = new Photo();
+	            $core->event = intval($data['e']);
+	        }
+	        if($data['l'] != '0') {
+	            if($core==NULL) $core = new Photo();
+	            $core->location = intval($data['l']);
+	        }
+	        foreach ($data['p'] as $ps) {
+	            if($core==NULL) $core = new Photo();
+	            $core->people[] = intval($ps);
+	        }
+	    }
+	    $path = $this->parent_dir.($this->dir==''?'':$this->dir.'/');
+	    
+	    if($core != $this->defaults) {
+	        $this->defaults = $core;
+	        $filedata = serialize($this->defaults);
+	        $fname = $path.'dir.json';
+	        if(file_put_contents($fname, $filedata)===false)
+	            throw new Exception('Failed to create '.$fname);
+	    }
+	    
+	    $seq = 1;
+	    $changed=FALSE;
+	    foreach ($this->files as $oFile) {
+	        $oFile->seq = $seq++;
+	        if(isset($file_idx[$oFile->filename])) {
+	            $changed = ($oFile->updateFromPOST($file_idx[$oFile->filename]) || $changed);
+	        }
+	    }
+	    if($changed) {
+	        $json = serialize(['files' => $this->files]);
+	        if(file_put_contents($path.'files.json', $json)===false)
+	            throw new Exception('Failed to create '.$path.'files.json');
+	    }
+	    
+	    foreach ($this->subdir as $child_dir) {
+	        $child_dir->updateFromPost($defaults);
+	    }
+	    return true;
+	}
+	
+	private function validate() {
+	    if($this->defaults->event==0) throw new Exception('Event required');
+	    if($this->defaults->location==0) throw new Exception('Event required');
 	}
 	
 }
