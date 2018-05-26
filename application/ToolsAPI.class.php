@@ -5,7 +5,7 @@ spl_autoload_register(function($name){
     $fn=str_replace('\\', DIRECTORY_SEPARATOR, $name);
     $fn=str_replace('photo/common/', '', $fn);    
     $fn=str_replace('photo/', '', $fn);
-    $fn=__DIR__ .DIRECTORY_SEPARATOR.$fn.'.class.php';
+    $fn=__DIR__ .DIRECTORY_SEPARATOR.$fn.(substr($name,0,3)=='lso'?'':'.class').'.php';
     if(file_exists($fn)) {
         include $fn;
     } else {
@@ -21,6 +21,13 @@ use photo\DAO\PersonDAO;
 use photo\Model\Event;
 use photo\Model\Location;
 use photo\Model\Person;
+use lsolesen\pel\PelJpeg;
+use photo\common\DBHelper;
+use lsolesen\pel\PelExif;
+use lsolesen\pel\PelTiff;
+use lsolesen\pel\PelIfd;
+use lsolesen\pel\PelEntryTime;
+use lsolesen\pel\PelTag;
 
 final class ToolsAPI
 {
@@ -109,6 +116,8 @@ final class ToolsAPI
                 return $this->prepareListToResize();
             case 'upl': //get unprocessed photos
                 return $this->collectPhotos();
+            case 'tonf2d':
+                return $this->updateTakenOnInDB();                
             default:
                 throw new \Exception('Operation invalid');
         }
@@ -178,7 +187,7 @@ final class ToolsAPI
         }
     }
     
-    private function collectPhotos() {
+    private function collectPhotos():PhotoDir {
         //scans location /var/www/unprocessed hierarchically and prepares array of files to be processed, with metadata
         $o = new PhotoDir(Config::DIR_UNPROCESSED,'');
         $o->collect(0);
@@ -304,10 +313,17 @@ final class ToolsAPI
     }
     
     private function saveDir() {
-        if(!$this->saveDraft()) {
-            return false;
+        if(!isset($_POST['d'])) throw new \Exception("Invalid arguments");
+        $dir = $_POST['d'];
+        $this->oDir = new PhotoDir(Config::DIR_UNPROCESSED,$dir);
+        $this->oDir->collect(0);
+        $dir_defaults = [];
+        $dir_defaults[$dir] = $this->buildDirDefault($_POST);
+        $this->oDir->updateFromPOST($dir_defaults);
+        if($this->oDir->saveDB()) {
+            //update photo counters
+            updatePhotosPerLocation();
         }
-        return $this->oDir->saveDB();
     }
     
     private function saveDraft() {
@@ -325,5 +341,36 @@ final class ToolsAPI
         $dao = LocationDAO::getInstance()->refreshPPN();
     }
     
+    private function updateTakenOnInDB() {
+        $path = Config::DIR_PICSFULL;
+        $pdo = DBHelper::getPDO();
+        $sql = 'SELECT photoid, taken_on FROM public.photos p JOIN public.events e ON e.evntid = p.event ORDER BY taken_on, date_from, date_to, sequence, seqnum, photoid';
+        $a=[];
+        foreach ($pdo->query($sql) as $rec) {
+            $n5 = sprintf('%05d',$rec['photoid']);
+            $n2 = substr($n5, 0,2);
+            $fn = $path.$n2.'/'.$n5.'.jpg';            
+            if(file_exists($fn)) {
+                $exif = exif_read_data($fn);
+                if(isset($exif['DateTimeOriginal'])) {
+                    $dt = explode(' ', $exif['DateTimeOriginal']);
+                    if ($dt !== false && count($dt) == 2) {
+                        $d = str_replace(':', '-', $dt[0]);
+                        $d .= ' ' . $dt[1];
+                        if(intval(substr($d,0,4))>1990 && $rec['taken_on']!= $d) {
+                            $a[$rec['photoid']]=array('db'=>$rec['taken_on'],'to'=>$d);
+                        }                             
+                    }
+                }
+            }
+        }
+        $upd = $pdo->prepare("UPDATE public.photos SET taken_on = ? WHERE photoid = ?");
+        foreach ($a as $id=>$ton) {
+            if(!$upd->execute([$ton['to'],$id])) throw new \Exception('Failed to update for id '.$id);
+        }
+        
+        return $a;        
+    }
+     
 }
 

@@ -164,10 +164,7 @@ final class PhotoFile extends Photo implements \JsonSerializable {
 	        //new
 	        $dao = PhotoDAO::getInstance();
 	        $dao->create($this);
-	        foreach ($this->people as $p2p) {
-	            if(pg_query_params("INSERT INTO public.ppl2photo (photoid,pplid) VALUES($1,$2)",array($this->id,$p2p))===FALSE)
-	                throw new Exception(pg_last_error());
-	        }
+	        $dao->createPeopleLink($this);
 	    }
 	}
 	

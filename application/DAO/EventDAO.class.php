@@ -3,7 +3,7 @@ namespace photo\DAO;
 
 use photo\common\DBHelper;
 
-class EventDAO extends AbstractDAO {
+class EventDAO {
     protected static $__instance = null;
     
     static function getInstance():IDAO {

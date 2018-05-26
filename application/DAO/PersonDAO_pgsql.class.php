@@ -6,7 +6,7 @@ use photo\Model\Person;
 use photo\common\Config;
 use photo\common\DBHelper;
 
-class PersonDAO_pgsql extends DAO_pgsql {
+class PersonDAO_pgsql extends AbstractDAO_pgsql {
     
     function __construct() {
         $this->tablename = 'public.people';

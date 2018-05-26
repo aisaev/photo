@@ -5,7 +5,7 @@ use photo\Model\DBModel;
 use photo\Model\Event;
 use photo\common\DBHelper;
 
-class EventDAO_pgsql extends DAO_pgsql {
+class EventDAO_pgsql extends AbstractDAO_pgsql {
     
     function __construct() {
         $this->tablename = 'public.events';
