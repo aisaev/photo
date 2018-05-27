@@ -6,7 +6,7 @@ use photo\Model\Person;
 use photo\common\Config;
 use photo\common\DBHelper;
 
-class PersonDAO_pgsql extends AbstractDAO_pgsql {
+class PersonDAO_pgsql extends AbstractDAO_pgsql implements IPersonDAO {
     
     function __construct() {
         $this->tablename = 'public.people';
@@ -61,6 +61,9 @@ class PersonDAO_pgsql extends AbstractDAO_pgsql {
         return $o;
     }
     
-    
+    public function refreshPPN(): int {
+        $pdo = DBHelper::getPDO();
+        return $pdo->exec('SELECT public."updatePplPhotoCount"()');        
+    }
 }
 ?>

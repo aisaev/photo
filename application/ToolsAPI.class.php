@@ -21,13 +21,7 @@ use photo\DAO\PersonDAO;
 use photo\Model\Event;
 use photo\Model\Location;
 use photo\Model\Person;
-use lsolesen\pel\PelJpeg;
 use photo\common\DBHelper;
-use lsolesen\pel\PelExif;
-use lsolesen\pel\PelTiff;
-use lsolesen\pel\PelIfd;
-use lsolesen\pel\PelEntryTime;
-use lsolesen\pel\PelTag;
 
 final class ToolsAPI
 {
@@ -42,7 +36,7 @@ final class ToolsAPI
         switch ($_GET['op']) {
             case 'ap':
                 // audit photos
-                return $this->auditPhotos();
+                //return $this->auditPhotos();
             case 'db':
                 //single dir
                 return $this->saveDir();
@@ -112,6 +106,8 @@ final class ToolsAPI
                 return $dao->getList();
             case 'ploc': //update count of photos per location
                 return $this->updatePhotosPerLocation();
+            case 'raa': 
+                return $this->resetAfterAdd();
             case 'rs_rd':
                 return $this->prepareListToResize();
             case 'upl': //get unprocessed photos
@@ -312,6 +308,19 @@ final class ToolsAPI
         return 1;
     }
     
+    private function resetAfterAdd(): bool {
+        //update photo counters
+        $pdao = PersonDAO::getInstance();
+        $pdao->refreshPPN();
+        $ldao = LocationDAO::getInstance();
+        $ldao->refreshPPN();
+        //remove generated .js files
+        exec('rm -R '.Config::DIR_PUBLIC.'/evt');
+        exec('rm -R '.Config::DIR_PUBLIC.'/loc');
+        exec('rm -R '.Config::DIR_PUBLIC.'/ppl');
+        return true;
+    }
+    
     private function saveDir() {
         if(!isset($_POST['d'])) throw new \Exception("Invalid arguments");
         $dir = $_POST['d'];
@@ -321,8 +330,7 @@ final class ToolsAPI
         $dir_defaults[$dir] = $this->buildDirDefault($_POST);
         $this->oDir->updateFromPOST($dir_defaults);
         if($this->oDir->saveDB()) {
-            //update photo counters
-            updatePhotosPerLocation();
+            $this->resetAfterAdd();                        
         }
     }
     

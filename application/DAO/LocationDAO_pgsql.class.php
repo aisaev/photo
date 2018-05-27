@@ -99,7 +99,7 @@ class LocationDAO_pgsql extends AbstractDAO_pgsql implements ILocationDAO {
         }
         
         $ps = $pdo->prepare('UPDATE '.$this->tablename.
-            ' SET "PPNChild" = ?, "PPNChildSnt" =x ? WHERE "Node" = ?');
+            ' SET "PPNChild" = ?, "PPNChildSnt" = ? WHERE "Node" = ?');
         foreach($node as $k=>$el){
             $ps->execute([$el[3],$el[4],$k]);
         }

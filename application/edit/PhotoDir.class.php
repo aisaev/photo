@@ -140,8 +140,8 @@ final class PhotoDir implements \JsonSerializable {
 	        $this->copyResized($oFile);
 	    }
 	    //if we're here, no exceptions occured, can remove from unprocessed
-        array_map('unlink', glob($cur_path.'/*'));
-        rmdir($cur_path);
+        //array_map('unlink', glob($cur_path.'/*'));
+        exec('rm -R '.$cur_path);
         return true;
 	}
 
