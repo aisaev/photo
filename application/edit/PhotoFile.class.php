@@ -11,7 +11,8 @@ use photo\DAO\PhotoDAO;
 final class PhotoFile extends Photo implements \JsonSerializable {
 	public $filename = NULL;
 	private $filename_new = NULL;
-	public $unproc = true;	
+	public $unproc = true;
+	public $has_thumb = false;
 	
 	public function __construct($dir=NULL,$filename=NULL,$off_m=0) {
 		if($dir==NULL) return;
@@ -62,6 +63,7 @@ final class PhotoFile extends Photo implements \JsonSerializable {
 	    }
 	    $this->taken_on = $tst->format('Y-m-d H:i:s');	    
 	}
+	
 	
 	private function convertExifGeo($coord,$ewns) {
 		$ll = NULL;
@@ -148,7 +150,8 @@ final class PhotoFile extends Photo implements \JsonSerializable {
 	        'p' => $this->people,
 	        'i' => $this->id,
 	        'cr' => $this->comment,
-	        'ce' => $this->commente
+	        'ce' => $this->commente,
+	        'th' => $this->has_thumb?"1":0
 	    ];
 	}
 	
@@ -177,8 +180,7 @@ final class PhotoFile extends Photo implements \JsonSerializable {
 	    if($changed = ($this->location != $location)) {
 	        $this->location = $location;
 	    }
-	    
-	    
+	    	    
 	    $people=[];
 	    if(isset($file_data['p'])) {
 	        foreach ($file_data['p'] as $pid) {
@@ -218,6 +220,12 @@ final class PhotoFile extends Photo implements \JsonSerializable {
 	            $this->commente = $file_data['ce'];
 	            $changed = true;
 	        }
+	    }
+	    
+	    $has_thumb = (isset($file_data['thumb']) && intval($file_data['thumb'])==1);
+	    if($this->has_thumb!=$has_thumb) {
+	        $this->has_thumb = $has_thumb;
+	        $changed = true;
 	    }
 	    
 	    return $changed;

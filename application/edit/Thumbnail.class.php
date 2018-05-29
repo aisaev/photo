@@ -8,6 +8,9 @@ class Thumbnail
 
     public function __construct($dir,$file)
     {
+        if(!file_exists($dir) || !is_dir($dir)) throw new \Exception('Bad path '.$dir);
+        if(!file_exists($dir.'/'.$file)) throw new \Exception('Bad pic '.$file);
+        
         $this->dir = $dir;
         $this->file = $file;
     }

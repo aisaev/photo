@@ -11,6 +11,7 @@ class PhotoFile {
 			this.cr=(json['cr']?json['cr']:null);
 			this.ce=(json['ce']?json['ce']:null);
 			this.lumix=/^P\d/.test(this.fn);
+			this.thumb=json['th'];
 		}
 	}
 	
@@ -19,7 +20,15 @@ class PhotoFile {
 		if(this.id!=0) {
 			$("input[name='id']",el).val(this.id);
 		}
-		$("div.img",el).replaceWith('<img src="/unprocessed/'+dir+'/.thumb/300/'+this.fn+'" data-toggle="popover" data-full="/unprocessed/'+dir+'/.thumb/1000/'+this.fn+'">');
+		$("input[name='thumb']",el).val(this.thumb);
+		if(this.thumb=='1') {
+			$("div.img",el).replaceWith(thumbHTML(dir,this.fn));
+		} else {
+			var lid = 'thumb'+localID++;
+			$('div.photo',el).attr('id',lid);
+			thumbsToPrep.push({'d':dir,'f':this.fn,'id':lid});
+		}
+		
 		$("h3",el).text(this.fn);
 		$(".taken-on",el).text(this.dt);
 		$("input[name='taken-on']",el).val(this.dt);
@@ -132,6 +141,8 @@ var placeById = [];
 var placeTree = [];
 var modalCaller = false;
 var saveBtn=[];
+var thumbsToPrep=[];
+var localID = 1;
 
 function addMinutes(date,minutes) {
 	return new Date(date.getTime()+minutes*60000);
@@ -272,7 +283,8 @@ function collectDirData(el) {
 					p:$("select.pplid",this).val(),
 					s:seq++,
 					dt:$(".taken-on",this).text(),
-					i:$("input[name='id']").val() 
+					i:$("input[name='id']",this).val(),
+					thumb:$("input[name='thumb']",this).val(),
 			};
 			if($("input[name='cr']",this).is(":visible")) {
 				fileCollected.cr = $("input[name='cr']",this).val();
@@ -432,6 +444,42 @@ function prepPlaceData() {
  		var oOption={id:o.id,text:'^'+o.dr+(o.dr==o.de?'':" | ^"+o.de)+(o.p=="0"?'':'  (in '+oP.dr+(oP.dr==oP.de?'':" | "+oP.de)+')')};
  		placeLookup[o.id] = oOption;
  	}	
+}
+
+function prepThumbnails() {
+	var o = thumbsToPrep.shift();
+	$.ajax({
+		url: "api.php?op=thumb",
+		method: "POST",
+		data: o,
+		dataType: 'json'
+	})
+	.done(function(data){			
+		if(data['e']=="0") {
+			var or=data.r;
+			//all is well, render thumbnail
+			$('#'+or.id+' input[name="thumb"]').val(or.ok);
+			$('#'+or.id+' div.img').replaceWith(thumbHTML(or.d,or.f));
+			$('#'+or.id+' img[data-toggle="popover"]').popover({
+				container: 'body',
+				html: true,
+				placement: 'auto',
+				trigger: 'hover',
+				delay: {show:700},
+				content: function() {
+					var url=$(this).data('full');
+					return '<img src="'+url+'">';
+				}
+			});
+			
+		}
+	})
+	.fail(function(jqXHR,textStatus,errorThrown){
+		
+	})
+	.always(function(){
+		prepThumbnails();
+	});
 }
 
 function renderCountrySelector() {
@@ -610,6 +658,12 @@ function sqlDate(dt) {
 	
 }
 
+function thumbHTML(d,f) {
+	var dt = '/unprocessed/'+d+'/.thumb/';
+	return '<img src="'+dt+'300/'+f+'" data-toggle="popover" data-full="'+dt+'1000/'+f+'">';	
+}
+
+
 function ToggleFiles(e) {
 	var div = $(e).closest("div.has-files");
 	if($('.panel-body',div).is(":hidden")) $('.panel-body,.dir-defaults tbody',div).show();
@@ -666,10 +720,8 @@ $(document).ready(function() {
 	renderPlacesSelector(modal);
 	renderCountrySelector();
 	prepModal();
-	var offset_min=getUrlParameter('m');
-	if(offset_min=='') offset_min=0;
 	$(".loader h2").text("Getting data...");
-	$.getJSON( "api.php?op=upl&m="+offset_min )
+	$.getJSON( "api.php?op=upl" )
 	.done(function(data){
 		$(".loader h2").text("Rendering data...");
 		if(data['e']=="1") {
@@ -694,7 +746,11 @@ $(document).ready(function() {
 			$(".dir-defaults select.pplid").select2({tags:true,width:'100%'});
 			$(".file-data select.pplid").select2({tags:true});
 		}
-		$(".loader").hide();
+		$(".loader").hide();		
+		prepThumbnails();
+		prepThumbnails();
+		prepThumbnails();
+		prepThumbnails();
 	})	
 	.fail(function(jqXHR,textStatus,errorThrown){
 		$(".loader h2").text("Error while retrieving data");

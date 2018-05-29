@@ -37,6 +37,14 @@ final class ToolsAPI
             case 'ap':
                 // audit photos
                 //return $this->auditPhotos();
+            case 'thumb':
+                //build single thumbnail
+                if (!isset($_REQUEST['d']) || !isset($_REQUEST['f'])) throw new \Exception('Missing parameter');
+                $oThumb = new Thumbnail(Config::DIR_UNPROCESSED.$_REQUEST['d'], $_REQUEST['f']);
+                $a = $_POST;
+                $a['ok']=($oThumb->process(isset($_REQUEST['fix']))?1:0);
+                return $a;
+                
             case 'db':
                 //single dir
                 return $this->saveDir();
@@ -186,7 +194,7 @@ final class ToolsAPI
     private function collectPhotos():PhotoDir {
         //scans location /var/www/unprocessed hierarchically and prepares array of files to be processed, with metadata
         $o = new PhotoDir(Config::DIR_UNPROCESSED,'');
-        $o->collect(0);
+        $o->collect();
         return $o;        
     }
     

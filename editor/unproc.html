@@ -54,6 +54,18 @@ transform: translate(-50%,-50%);
 h3.dir,div.placedescr{cursor: pointer;}
 .fixed-top-right{position:absolute;top:0.5rem;right:0.5rem;}
 .thumbnail select.pplid{max-width: 400px;}
+.spinner {
+    border: 16px solid #f3f3f3; /* Light grey */
+    border-top: 16px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 </style>
 <script src="js/jquery.js"></script>
 <script src="bootstrap/js/bootstrap.js"></script>
@@ -263,11 +275,12 @@ h3.dir,div.placedescr{cursor: pointer;}
 	<!-- for files -->
 	<div class="file-template my-template">
 		<div class="thumbnail photo">
-			<div class="img"></div>
+			<div class="img spinner"></div>
 			<div class="caption">
 				<form class="file-data">
 					<h3></h3>
 					<input type="hidden" name='id' value="0">
+					<input type="hidden" name='thumb' value="0">
 					<div class="exif">
 						<label>Taken on: </label><span class="taken-on"></span>
 						<span class="taken-loc"></span> 

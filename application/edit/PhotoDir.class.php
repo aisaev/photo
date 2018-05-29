@@ -5,7 +5,6 @@ require_once 'PhotoFile.class.php';
 require_once 'Thumbnail.class.php';
 use photo\Model\Photo;
 use \Exception;
-use photo\Model\DBModel;
 use photo\common\DBHelper;
 
 final class PhotoDir implements \JsonSerializable {
@@ -21,7 +20,7 @@ final class PhotoDir implements \JsonSerializable {
 	    $this->dir = $dir_name;
 	}
 	
-	public function collect($off_m=0) {
+	public function collect() {
 	    //read dir defaults
 	    $path = $this->parent_dir.$this->dir.'/';
 	    $dir_json = $path.'dir.json';
@@ -60,20 +59,19 @@ final class PhotoDir implements \JsonSerializable {
                     if($l_ext == 'JPG') {
                         if(isset($filesCache[$l_f])) {
                             $oFile = $filesCache[$l_f];
-                            $oFile->addOffset($off_m);
                         } else {
-                            $oFile = new PhotoFile($path,$l_f,$off_m);
+                            $oFile = new PhotoFile($path,$l_f);
                         }
                         //prepare thumbnails, if needed. They will be 250x250 and 800x800 under .thumb/250 and .thumb/800
-                        $oThumb = new Thumbnail($path, $l_f);
-                        $oThumb->process(isset($_GET['fix']) && (substr($l_f, 0,1)=='P'));
+                        //$oThumb = new Thumbnail($path, $l_f);
+                        //$oThumb->process(isset($_GET['fix']) && (substr($l_f, 0,1)=='P'));
                         $this->files[] = $oFile;
                     }
                     $l_ext = 'jpg';
                 }
             } else {
                 $oDir = new self($path,$l_f);
-                $oDir->collect($off_m);
+                $oDir->collect();
                 $this->subdir[] = $oDir;
             }
         }
