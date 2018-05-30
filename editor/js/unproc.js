@@ -612,6 +612,7 @@ function saveEvent() {
 }
 
 function SaveEventDir() {
+	$("#cbs").modal('hide');
 	$(".loader h2").text("Saving in DB");
 	$(".loader").show();
 	var o = collectDirData($(saveButton).closest('.dir.has-files'));
