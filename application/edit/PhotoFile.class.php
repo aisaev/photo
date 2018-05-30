@@ -107,7 +107,7 @@ final class PhotoFile extends Photo implements \JsonSerializable {
 	            throw new Exception('Failed to create dir '.$dir_dst) ;	            
 	    }
 	    $fn_dst = $dir_dst.'/'.$fn_short;
-	    if(!copy($fn_src,$fn_dst)) throw new Exception('Failed to copy '.$fn_src.' to '.$fn_dst);
+	    if(!file_exists($fn_dst) && !copy($fn_src,$fn_dst)) throw new Exception('Failed to copy '.$fn_src.' to '.$fn_dst);
 	    $this->filename_new = $fn_short;
 	}
 	
