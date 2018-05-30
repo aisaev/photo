@@ -141,6 +141,23 @@ h3.dir,div.placedescr{cursor: pointer;}
 			</div>
 		</div>
 	</div>
+	<!-- popup to confirm before DB save -->
+	<div id="cbs" class="modal" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-sm">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class=modal-title>Are you sure you want to save?</h4>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-success" onclick="SaveEventDir()">Yes</button>
+					<button type="button" class="btn btn-danger" data-dismiss="modal">No</button>
+				</div>
+			</div>
+		</div>
+	</div>
 	<!-- entry form for event data -->
 	<div id="evtedit" class="modal">
 		<div class="modal-dialog modal-lg" style="background-color: white;">
@@ -265,7 +282,7 @@ h3.dir,div.placedescr{cursor: pointer;}
 				<table><tr>
 					<td><input class="adjtime form-control" placeholder="Minutes adjust for Lumix" type="number" onchange="adjustTimes(this)"></td>
 					<td><button class="btn btn-primary" onclick="openModal(this,true)">Defaults</button></td>
-					<td><button class="btn btn-success" onclick="SaveEventDir(this)">Save</button></td>
+					<td><button class="btn btn-success" onclick="confirmBeforeSave(this)">Save</button></td>
 				</tr></table>
 				</div>
 			</div>

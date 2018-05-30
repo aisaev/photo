@@ -297,6 +297,12 @@ function collectDirData(el) {
 	return dirCollected;	
 }
 
+var saveButton=null;
+function confirmBeforeSave(el) {
+	saveButton = el;
+	$("#cbs").modal('show');
+}
+
 function editEvent(id=0) {
 	if(id==0) {
 		$("#evtedit form input").val('');
@@ -605,10 +611,10 @@ function saveEvent() {
 		});
 }
 
-function SaveEventDir(el) {
+function SaveEventDir() {
 	$(".loader h2").text("Saving in DB");
 	$(".loader").show();
-	var o = collectDirData($(el).closest('.dir.has-files'));
+	var o = collectDirData($(saveButton).closest('.dir.has-files'));
 	callSave(o,'db');
 }
 
