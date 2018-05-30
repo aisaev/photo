@@ -26,6 +26,7 @@ class PhotoDAO_pgsql extends AbstractDAO_pgsql implements IPhotoDAO {
         ];
         $this->keys = ['id'];
         $this->db_keys = ['photoid'];
+        $this->init();        
     }
     
     public function createPeopleLink(Photo &$o) {

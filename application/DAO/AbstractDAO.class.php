@@ -5,14 +5,17 @@ require_once __DIR__.'/../core.php';
 
 use photo\Model\DBModel;
 use photo\common\AbstractFactory;
-use photo\common\DBHelper;
-use photo\common\ErrorHandler;
 
 abstract class AbstractDAO extends AbstractFactory implements IDAO {
     const MAX_CNT = 100;
     protected $tablename = null;
     protected $seq_name = null;
     protected $map = null;
+    protected $maplen = 0;
+    protected $idx_by_prop = null;
+    protected $db_keys=null;
+    protected $keys=null;
+    
     public function create(DBModel &$o): bool { return false; }
     public function update(DBModel $o): bool { return false; }
     public function save(DBModel &$o): bool
@@ -27,7 +30,6 @@ abstract class AbstractDAO extends AbstractFactory implements IDAO {
     public function delete(DBModel $o): bool { return false; }
     public function findById(array $pk): DBModel {}
     public function getList($listOfPK=null): array { return []; }
-    
     public function fillFromDB($o,$rec) {
         $len = count($this->map);
         
@@ -65,6 +67,15 @@ abstract class AbstractDAO extends AbstractFactory implements IDAO {
             }
         }
         $o->validateAfterEntry();        
+    }
+    
+    public function init() {
+        $this->maplen = count($this->map);
+        $this->idx_by_prop = [];
+        for($i=0;$i<$this->maplen;$i++) {
+            $a = $this->map[$i];
+            $this->idx_by_prop[$a[1]] = $a;
+        }        
     }
     
 }

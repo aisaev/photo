@@ -23,6 +23,7 @@ class PersonDAO_pgsql extends AbstractDAO_pgsql implements IPersonDAO {
         ];
         $this->keys = ['id'];
         $this->db_keys = ['pplid'];
+        $this->init();        
     }
     
     function getList($listOfPK=NULL): array {

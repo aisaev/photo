@@ -27,6 +27,7 @@ class LocationDAO_pgsql extends AbstractDAO_pgsql implements ILocationDAO {
         ];
         $this->keys = ['id'];
         $this->db_keys = ['"Node"'];
+        $this->init();        
     }
     
     function getList($listOfPK=NULL): array {

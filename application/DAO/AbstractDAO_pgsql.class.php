@@ -45,7 +45,46 @@ abstract class AbstractDAO_pgsql extends AbstractDAO {
     }
     
     public function update(DBModel $o): bool
-    {}
+    {
+        if ($o==null) {
+            throw new \Exception('No proper object to update');
+        }
+        if($o->id==0) throw new \Exception('Cannot update object with initial ID');
+        $sql = 'UPDATE '.$this->tablename.' SET ';
+        $param=[];
+        $is_first = true;
+        foreach ($o->updfld as $prop => $updated) {
+            if($prop == 'id' || !$updated) continue;
+            $param[] = $o->$prop;
+            if($is_first) {
+                $is_first = false;
+            } else {
+                $sql.=', ';
+            }
+            $dbfld = $this->idx_by_prop[$prop][0];
+            $sql.=$dbfld.' = ?';
+        }
+        if($is_first) return true;
+        $sql .= ' WHERE ';
+        $is_first = true;
+        foreach ($this->keys as $i=>$key_prop) {
+            if($is_first) {
+                $is_first = false;
+            } else {
+                $sql.=' AND ';
+            }
+            $dbfld = $this->idx_by_prop[$key_prop][0];
+            $sql .= $dbfld.' = ?';
+            $param[] = $o->$key_prop;
+        }
+        if($is_first) throw new \Exception('Invalid DB keys');
+        
+        $stmt = DBHelper::getPDO()->prepare($sql);
+        if(!$stmt->execute($param)) {
+            throw new \Exception('Failed to update record');
+        }
+        return true;
+    }
     
     public function delete(DBModel $o): bool
     {

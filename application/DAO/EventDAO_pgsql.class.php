@@ -21,6 +21,7 @@ class EventDAO_pgsql extends AbstractDAO_pgsql {
             ['event','desc_r','r',null],
             ['evente','desc_e','e',null]
         ];
+        $this->init();        
     }
     
     function getList($listOfPK=NULL): array {
