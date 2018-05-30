@@ -339,38 +339,45 @@ function getUrlParameter(sParam) {
 
 function openModal(e,isDir)
 {
-	var rebuild = false;
-	if(isDir)
+	var dirEl=false;
+	if(isDir) {
 		modalCaller = $('form',$(e).closest('.panel-heading'));
-	else
+		dirEl = modalCaller;
+	} else {
 		modalCaller = $(e).closest('form');
+		dirEl = $(modalCaller).closest("div.panel");
+	}
+	var isDir = modalCaller.hasClass('dir-defaults');
 
 	var currentPlace = $(".placeid",modalCaller).val();
 	var currentPeople = $(".pplid",modalCaller).val();
-	var isDir = modalCaller.hasClass('dir-defaults');
-	if(isDir) {		
-		$("#elp h4").replaceWith('<h4>'+$('.dir',modalCaller).text()+'</h4>');
+	var selPlace = $("#placesel").val();
+	var dirNameLast = $("#modal_parent").val();
+	var dirNameNow = $("h3.dir",dirEl).text();
+	var rebuild = (dirNameLast!=dirNameNow);
+	if(rebuild) {
+		selPlace='0';
+	}
+	var rebuildPpl = false;
+	$("#elp h4").replaceWith('<h4>'+$('.dir',dirEl).text()+'</h4>');
+	$("#modal_parent").val(dirNameNow);
+	
+	if(isDir) {	
 		var eventId = $(".eventid", modalCaller).val(); 
 		$("#eventsel").val(eventId).trigger("change");
-
+		$("#modal_parent").val(dirNameNow);
 	} else {
 		//file data
-		var dir = $(modalCaller).closest("div.panel");
-		var dirNameLast = $("#modal_parent").val();
-		var dirNameNow = $("h3.dir",dir).text();
-		if(dirNameLast!=dirNameNow) {
-			$("#modal_parent").val(dirNameNow);
-			rebuild = true;
-		}
-		if(currentPlace == '0' && $("#placesel").val()=='0')
-			currentPlace = $(".placeid",dir).val();
+		if(currentPlace == '0' && rebuild)
+			currentPlace = $(".placeid",dirEl).val();
 	}
 	 
-	if(currentPlace!='0' && currentPlace != $("#current_place").val()) {
+	//if(rebuild || (currentPlace!='0' && currentPlace != $("#current_place").val())) {
+	if(rebuild || (currentPlace != '0' && selPlace != currentPlace)) {
 		$("#placesel").html(buildPlacesOptions(currentPlace)).change();			
 	}
-	if(currentPeople!=null && currentPeople.length>0 || isDir)
-		$("#peoplesel").val(currentPeople).trigger("change");	
+	$("#peoplesel").val(currentPeople).trigger("change");
+			
 	$("#elp").modal('show');
 }
 
@@ -433,6 +440,11 @@ function prepPlaceData() {
 	 	placeTree[o.p].push(o.id);	 		
  	}
 	
+	places.r.sort(function(a,b){
+		if(a.de<b.de) return -1;
+		else if(a.de>b.de) return 1;
+		else return 0;
+	});
  	for(var i=0;i<len;i++) { 		
  		var o = places.r[i];
  		var oP = placeById[o.p];
@@ -527,7 +539,7 @@ function renderEventsSelector(parent) {
 function renderPeopleSelector(parentControl) {
 	$("#peoplesel").html(buildPeopleOptions(people.r,false,false));
  	$("#peoplesel").select2({
- 		tags:true,
+ 		tags:false,
  		theme:"bootstrap",
  		dropdownParent: parentControl,
  		minimumResultsForSearch:5
