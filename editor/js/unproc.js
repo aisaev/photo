@@ -165,7 +165,7 @@ function adjustTimes(el) {
 		$('div.photo',elDir).sort(function(a,b){
 			var dtA = new Date($("span.taken-on",a).text());
 			var dtB = new Date($("span.taken-on",b).text());
-			return dtA.getTime()>dtB.getTime();
+			return dtA.getTime()-dtB.getTime();
 		}).appendTo(elDir);
 	}
 }
