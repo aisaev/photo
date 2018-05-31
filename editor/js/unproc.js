@@ -465,6 +465,7 @@ function prepPlaceData() {
 }
 
 function prepThumbnails() {
+	if(thumbsToPrep.length = 0) return;
 	var o = thumbsToPrep.shift();
 	$.ajax({
 		url: "api.php?op=thumb",

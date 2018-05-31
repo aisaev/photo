@@ -1,12 +1,9 @@
 <?php
 namespace photo\DAO;
 
-require_once __DIR__.'/../core.php';
-
 use photo\Model\DBModel;
-use photo\common\AbstractFactory;
 
-abstract class AbstractDAO extends AbstractFactory implements IDAO {
+abstract class AbstractDAO implements IDAO {
     const MAX_CNT = 100;
     protected $tablename = null;
     protected $seq_name = null;
@@ -15,6 +12,7 @@ abstract class AbstractDAO extends AbstractFactory implements IDAO {
     protected $idx_by_prop = null;
     protected $db_keys=null;
     protected $keys=null;
+    protected static $__instance = null;    
     
     public function create(DBModel &$o): bool { return false; }
     public function update(DBModel $o): bool { return false; }
