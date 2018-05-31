@@ -5,7 +5,8 @@ require_once 'ErrorHandler.class.php';
 
 class DBConfig
 {   
-    const CFG_FILE = '/usr/local/wwwcfg/photo.cfg';
+    const CFG_FILE = 'photo.cfg';
+    const CFG_PATH = '/usr/local/wwwcfg/';
     const DB_NAME = 'DB_NAME';
     const DB_PASS = 'DB_PASS';
     const DB_USER = 'DB_USER';
@@ -17,7 +18,7 @@ class DBConfig
     public $db_pass = '';
     
     private function __construct() {
-        $ini_array = parse_ini_file(self::CFG_FILE);
+        $ini_array = parse_ini_file((file_exists(self::CFG_PATH)?self::CFG_PATH:'').self::CFG_FILE);
         if(!isset($ini_array[self::DB_NAME])) throw new \Exception('No DB name'); 
         if(!isset($ini_array[self::DB_USER])) throw new \Exception('No DB user');
         if(!isset($ini_array[self::DB_PASS])) throw new \Exception('No DB password');
