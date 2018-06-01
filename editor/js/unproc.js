@@ -230,6 +230,11 @@ function buildPlacesOptions(parentLoc)
 }
 
 function callSave(o,op) {
+	if(op=='db') {
+		$(".loader h2").text("Saving in DB");
+		$(".loader").show();
+	}
+	
 	$.ajax({
 		type: "POST",
 		url:"api.php?op="+op,
@@ -250,7 +255,7 @@ function callSave(o,op) {
 					var oFile = new PhotoFile(data['r'][i]);
 					filesToProd.push({'d':o.d,'f':oFile.fn,'id':oFile.id});
 				}
-				copyFileToProd();
+				copyFileToProd(0);
 			}
 		}
 		$("#msg").append(hAlert);			
@@ -306,9 +311,20 @@ function confirmBeforeSave(el) {
 	$("#cbs").modal('show');
 }
 
-function copyFileToProd() {
+function copyFileToProd(level) {
 	if(filesToProd.length==0) return;
 	var o = filesToProd.shift();
+	if(level==0) {
+		//hide Save button
+		$('h3.dir').each(function(){
+			var d = $(this).text();
+			if(d==o.d) {
+				//dir found, look for fil
+				var elDir = $(this).closest('div.dir.has-files');
+				$('.panel-heading .button-holder',elDir).hide();
+			}
+		});		
+	}
 	$.ajax({
 		url: "api.php?op=cpf",
 		method: "POST",
@@ -349,7 +365,7 @@ function copyFileToProd() {
 		$("#msg").append(hAlert);		
 	})
 	.always(function(){
-		copyFileToProd();
+		copyFileToProd(1);
 	});
 	
 }
@@ -668,11 +684,9 @@ function saveEvent() {
 
 function SaveEventDir() {
 	$("#cbs").modal('hide');
-	$(".loader h2").text("Saving in DB");
-	$(".loader").show();
 	var o = collectDirData($(saveButton).closest('.dir.has-files'));
 	if(o==false) { //already saved, copy files
-		copyFileToProd();
+		copyFileToProd(0);
 	} else {
 		callSave(o,'db');	
 	}
