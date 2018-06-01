@@ -624,7 +624,7 @@ function savePerson() {
 	$.post("api.php?op=edppl",$("#ppledit form").serialize())
 		.done(function(data){
 			//returns pplID
-			if(data['e']=='0') {
+			if(data['e']==0) {
 				//all good, got back ID
 				var o = {
 					id:data['id'],
