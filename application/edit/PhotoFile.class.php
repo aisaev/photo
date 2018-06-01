@@ -11,7 +11,6 @@ use photo\DAO\PhotoDAO;
 final class PhotoFile extends Photo implements \JsonSerializable {
 	public $filename = NULL;
 	private $filename_new = NULL;
-	public $unproc = true;
 	public $has_thumb = false;
 	
 	public function __construct($dir=NULL,$filename=NULL,$off_m=0) {

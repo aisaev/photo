@@ -37,13 +37,10 @@ final class ToolsAPI
             case 'ap':
                 // audit photos
                 //return $this->auditPhotos();
-            case 'thumb':
-                //build single thumbnail
-                if (!isset($_REQUEST['d']) || !isset($_REQUEST['f'])) throw new \Exception('Missing parameter');
-                $oThumb = new Thumbnail(Config::DIR_UNPROCESSED.$_REQUEST['d'], $_REQUEST['f']);
-                $a = $_POST;
-                $a['ok']=($oThumb->process(isset($_REQUEST['fix']))?1:0);
-                return $a;
+            
+            case 'cpf':
+                //copy single image file to production. ID is known
+                return $this->copyImageToProduction()?$_POST:[];
                 
             case 'db':
                 //single dir
@@ -118,10 +115,20 @@ final class ToolsAPI
                 return $this->resetAfterAdd();
             case 'rs_rd':
                 return $this->prepareListToResize();
+            
+            case 'thumb':
+                //build single thumbnail
+                if (!isset($_REQUEST['d']) || !isset($_REQUEST['f'])) throw new \Exception('Missing parameter');
+                $oThumb = new Thumbnail(Config::DIR_UNPROCESSED.$_REQUEST['d'], $_REQUEST['f']);
+                $a = $_POST;
+                $a['ok']=($oThumb->process(isset($_REQUEST['fix']))?1:0);
+                return $a;
+            
+            case 'tonf2d':
+                return $this->updateTakenOnInDB();
+                
             case 'upl': //get unprocessed photos
                 return $this->collectPhotos();
-            case 'tonf2d':
-                return $this->updateTakenOnInDB();                
             default:
                 throw new \Exception('Operation invalid');
         }
@@ -196,6 +203,17 @@ final class ToolsAPI
         $o = new PhotoDir(Config::DIR_UNPROCESSED,'');
         $o->collect();
         return $o;        
+    }
+    
+    private function copyImageToProduction() {
+        if(!isset($_POST['d'])) throw new \Exception("Invalid arguments");
+        $dir = $_POST['d'];
+        if(!isset($_POST['id'])) throw new \Exception("No ID specified");
+        $id = intval($_POST['id']);
+        $this->oDir = new PhotoDir(Config::DIR_UNPROCESSED,$dir);
+        $this->oDir->collect(true);
+        return $this->oDir->copyToProductionSingle($id);
+        
     }
     
     private function createSingleThumb($size, $fn_src)
@@ -333,13 +351,11 @@ final class ToolsAPI
         if(!isset($_POST['d'])) throw new \Exception("Invalid arguments");
         $dir = $_POST['d'];
         $this->oDir = new PhotoDir(Config::DIR_UNPROCESSED,$dir);
-        $this->oDir->collect(0);
+        $this->oDir->collect();
         $dir_defaults = [];
         $dir_defaults[$dir] = $this->buildDirDefault($_POST);
         $this->oDir->updateFromPOST($dir_defaults);
-        if($this->oDir->saveDB()) {
-            $this->resetAfterAdd();                        
-        }
+        return $this->oDir->saveDB();
     }
     
     private function saveDraft() {

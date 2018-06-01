@@ -19,6 +19,7 @@ class PhotoFile {
 		var el = $("div.file-template").clone();
 		if(this.id!=0) {
 			$("input[name='id']",el).val(this.id);
+			filesToProd.push({'d':dir,'f':this.fn,'id':this.id});
 		}
 		$("input[name='thumb']",el).val(this.thumb);
 		if(this.thumb=='1') {
@@ -29,7 +30,7 @@ class PhotoFile {
 			thumbsToPrep.push({'d':dir,'f':this.fn,'id':lid});
 		}
 		
-		$("h3",el).text(this.fn);
+		$("h3.fn",el).text(this.fn);
 		$(".taken-on",el).text(this.dt);
 		$("input[name='taken-on']",el).val(this.dt);
 		if(this.lt!=0) {
@@ -143,6 +144,8 @@ var modalCaller = false;
 var saveBtn=[];
 var thumbsToPrep=[];
 var localID = 1;
+var filesToProd=[]; //files that have to be copied to production
+var saveButton=null;
 
 function addMinutes(date,minutes) {
 	return new Date(date.getTime()+minutes*60000);
@@ -241,14 +244,13 @@ function callSave(o,op) {
 		} else {
 			$(".msgcnt",hAlert).text('Saved');
 			hAlert.addClass('alert-success');
-			if(op=='db') {
-				//remove panel
-				var skip=false;
-				$('h3.dir').each(function(){
-					if(skip) return;
-					skip=($(this).text()==o.d);
-					if(skip) $(this).closest('.has-files').remove();
-				});
+			if(op=='db') { 
+				//update ids on photo
+				for(var i=0;i<data['r'].length;i++) {
+					var oFile = new PhotoFile(data['r'][i]);
+					filesToProd.push({'d':o.d,'f':oFile.fn,'id':oFile.id});
+				}
+				copyFileToProd();
 			}
 		}
 		$("#msg").append(hAlert);			
@@ -266,6 +268,7 @@ function callSave(o,op) {
 
 function collectDirData(el) {
 	var dirCollected = {};
+	var allInDB = true;
 	$(".dir-defaults",el).each(function(){		
 		dirCollected = {
 				d:$(".dir",this).text(),
@@ -278,7 +281,7 @@ function collectDirData(el) {
 		var seq=1;
 		$("form.file-data",el).each(function(){
 			var fileCollected = {
-					f:$("h3",this).text(),
+					f:$("h3.fn",this).text(),
 					l:$("input.placeid",this).val(),
 					p:$("select.pplid",this).val(),
 					s:seq++,
@@ -286,6 +289,7 @@ function collectDirData(el) {
 					i:$("input[name='id']",this).val(),
 					thumb:$("input[name='thumb']",this).val(),
 			};
+			if((''+fileCollected.i)=='0') allInDB = false;
 			if($("input[name='cr']",this).is(":visible")) {
 				fileCollected.cr = $("input[name='cr']",this).val();
 				fileCollected.ce = $("input[name='ce']",this).val();				
@@ -294,13 +298,60 @@ function collectDirData(el) {
 		});
 
 	});
-	return dirCollected;	
+	return allInDB?false:dirCollected;	
 }
 
-var saveButton=null;
 function confirmBeforeSave(el) {
 	saveButton = el;
 	$("#cbs").modal('show');
+}
+
+function copyFileToProd() {
+	if(filesToProd.length==0) return;
+	var o = filesToProd.shift();
+	$.ajax({
+		url: "api.php?op=cpf",
+		method: "POST",
+		data: o,
+		dataType: 'json'
+	})
+	.done(function(data){			
+		if((''+data['e'])=="0") {
+			if(data['r']) {
+				var oc = data['r'];
+				//success, remove pic
+				$('h3.dir').each(function(){
+					var d = $(this).text();
+					if(d==oc.d) {
+						//dir found, look for fil
+						var elDir = $(this).closest('div.dir.has-files');
+						$('div.photo',elDir).each(function(){
+							var fn=$('h3.fn',this).text();
+							if(oc.f==fn) {
+								$(this).remove();
+								return false;
+							}
+						});
+						if($('div.photo',elDir).length==0) {
+							//no more photos, remove
+							$(elDir).remove();
+						}
+						return false;
+					}
+				});
+			}
+		}
+	})
+	.fail(function(jqXHR,textStatus,errorThrown){
+		var hAlert=$('<div class="alert alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button><span class="msgcnt"></div>');
+		$(".msgcnt",hAlert).text(textStatus);
+		hAlert.addClass('alert-danger');
+		$("#msg").append(hAlert);		
+	})
+	.always(function(){
+		copyFileToProd();
+	});
+	
 }
 
 function editEvent(id=0) {
@@ -599,9 +650,12 @@ function saveEvent() {
 					return -1;}
 				);
 				eventLookup=[];
-				$("#eventsel").select2("destroy");
-				$("#eventsel").html('');
+				var esel = $("#eventsel"); 
+				esel.select2("destroy");
+				esel.html('');
 				renderEventsSelector($('#elp'));
+				esel.val(o.i);
+				esel.trigger("change");
 				$("#evtedit").modal('hide');
 			} else {
 				alert(data['m']);
@@ -617,38 +671,48 @@ function SaveEventDir() {
 	$(".loader h2").text("Saving in DB");
 	$(".loader").show();
 	var o = collectDirData($(saveButton).closest('.dir.has-files'));
-	callSave(o,'db');
+	if(o==false) { //already saved, copy files
+		copyFileToProd();
+	} else {
+		callSave(o,'db');	
+	}
+	
 }
 
 function savePerson() {
-	$.post("api.php?op=edppl",$("#ppledit form").serialize())
-		.done(function(data){
-			//returns pplID
-			if(data['e']==0) {
-				//all good, got back ID
-				var o = {
-					id:data['id'],
-					n:$("#ppledit form input[name='n']").val(),
-					a:$("#ppledit form input[name='a']").val(),
-					ne:$("#ppledit form input[name='ne']").val(),
-					ae:$("#ppledit form input[name='ae']").val(),
-					c:$("#ppledit form select[name='c']").val()
-				};
-				people.r.push(o);
-				var optionEl = $("<option value='"+o.id+"'></option>");
-				var nameR = o.n+(o.a?" AKA "+o.a:'');
-				var nameE = o.ne+(o.ae?" AKA "+o.ae:'');
-				var optionData = {id:o.id,text:nameR+(nameR==nameE?'':' | '+nameE)+(o.c?' (from '+o.c+')':'')};
-				peopleLookup[o.id] = optionData;
-				var optionEl = $("<option value='"+o.id+"' selected></option>");
-				optionEl.text(optionData.text);				
-				$("#peoplesel").append(optionEl).trigger("change");
-				$("#ppledit").modal('hide');
-			} 
-		})
-		.fail(function(jqXHR,textStatus,errorThrown){
-			alert(textStatus);
-		});
+	$.ajax({
+		url: "api.php?op=edppl",
+		method: "POST",
+		data: $("#ppledit form").serialize(),
+		dataType: 'json'
+	})
+	.done(function(data){
+		//returns pplID
+		if((''+data['e'])=='0') {
+			//all good, got back ID
+			var o = {
+				id:data['id'],
+				n:$("#ppledit form input[name='n']").val(),
+				a:$("#ppledit form input[name='a']").val(),
+				ne:$("#ppledit form input[name='ne']").val(),
+				ae:$("#ppledit form input[name='ae']").val(),
+				c:$("#ppledit form select[name='c']").val()
+			};
+			people.r.push(o);
+			var optionEl = $("<option value='"+o.id+"'></option>");
+			var nameR = o.n+(o.a?" AKA "+o.a:'');
+			var nameE = o.ne+(o.ae?" AKA "+o.ae:'');
+			var optionData = {id:o.id,text:nameR+(nameR==nameE?'':' | '+nameE)+(o.c?' (from '+o.c+')':'')};
+			peopleLookup[o.id] = optionData;
+			var optionEl = $("<option value='"+o.id+"' selected></option>");
+			optionEl.text(optionData.text);				
+			$("#peoplesel").append(optionEl).trigger("change");
+			$("#ppledit").modal('hide');
+		} 
+	})
+	.fail(function(jqXHR,textStatus,errorThrown){
+		alert(textStatus);
+	});
 }
 
 function showComments(el) {

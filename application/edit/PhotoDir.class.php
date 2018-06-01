@@ -20,7 +20,7 @@ final class PhotoDir implements \JsonSerializable {
 	    $this->dir = $dir_name;
 	}
 	
-	public function collect() {
+	public function collect($locked=false) {
 	    //read dir defaults
 	    $path = $this->parent_dir.$this->dir.'/';
 	    $dir_json = $path.'dir.json';
@@ -38,6 +38,8 @@ final class PhotoDir implements \JsonSerializable {
 	    if(file_exists($files_json)) {
 	        //read file meta-data
 	        $filesJSON = unserialize(file_get_contents($files_json));
+	    } elseif($locked) {
+	        throw new \Exception('Collection for locked dir is not allowed');
 	    } else {
 	        $rebuild = true;
 	    }
@@ -109,7 +111,7 @@ final class PhotoDir implements \JsonSerializable {
 		];
 	}
 	
-	public function saveDB() {
+	public function saveDB():array {
 	    $this->validate();
 	    $is_first = TRUE;
 	    $cur_path = $this->parent_dir.$this->dir;
@@ -133,16 +135,29 @@ final class PhotoDir implements \JsonSerializable {
 	        if($is_first) throw $e;
 	        if($pdo->rollBack()==FALSE) throw new Exception("Failed to roll back");
 	    }
+	    return $this->files;
+	}
+	
+	public function copyToProductionSingle($id):bool {
 	    //resize
 	    foreach ($this->files as $oFile) {
-	        $this->copyResized($oFile);
+	        if($oFile->id != $id) continue;
+	        $fnf = $this->parent_dir.$this->dir.'/'.$oFile->filename;
+	        if(file_exists($fnf)) {
+	            $this->copyResized($oFile);
+	            unlink($fnf);
+	            return true;
+	        }	        
 	    }
-	    //if we're here, no exceptions occured, can remove from unprocessed
-        //array_map('unlink', glob($cur_path.'/*'));
-        exec('rm -R '.$cur_path);
-        return true;
+	    return false;
 	}
-
+	
+	public function cleanUp() {
+	    //if we're here, no exceptions occured, can remove from unprocessed
+	    //array_map('unlink', glob($cur_path.'/*'));
+	    exec('rm -R '.$this->parent_dir.$this->dir);	    
+	}
+	
 	public function updateFromPOST($defaults) {
 	    $file_idx=[];
 	    $core = NULL;

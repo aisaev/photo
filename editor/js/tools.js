@@ -101,6 +101,20 @@ function resizeBatch(id,cnt,maxCnt) {
 	});	
 }
 
+function refreshAfterAdd() {
+	$.getJSON('api.php?op=raa')
+	.done(function(data) {
+		if(data['e']=="1") {
+			reportMessage(data['m']);
+		} else {
+			reportMessage('all is well','success');
+		}
+	})
+	.fail(function(jqXHR,textStatus,errorThrown){
+		reportMessage(textStatus);
+	});
+}
+
 function auditPhotos() {
 	$("#msg").html('');
 	$.getJSON( "/api.php?op=ap" )
