@@ -46,7 +46,7 @@ function prepPhotos() {
 			for(var i=0;i<dirs.length;i++) {
 				s+=dirs[i].toHTML();
 			}
-			$('#content').html('<h1>Push button to process directory</h1><p>'+s+'</p>');
+			$('#content').html(len>0?'<h1>Push button to process directory</h1><p>'+s+'</p>':'Nothing to do');
 		}
 	});
 	return false;
