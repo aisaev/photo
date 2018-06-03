@@ -99,7 +99,7 @@ final class PhotoFile extends Photo implements \JsonSerializable {
 	    elseif($this->id < 10000) $fn_short = '0';
 	    $fn_short .= $this->id.'.jpg';
 	    $dd = substr($fn_short, 0,2);
-	    $dir_dst = Config::DIR_PICSFULL.$dd;
+	    $dir_dst = Config::DIR_RAW.$dd;
 	    $fn_src = $dir_src.$this->filename;
 	    if (!is_dir($dir_dst)) {
 	        if (mkdir($dir_dst)==false)
@@ -112,6 +112,11 @@ final class PhotoFile extends Photo implements \JsonSerializable {
 	
 	private function createSingleThumb($size,$force) {
 	    switch ($size) {
+	        case Config::DIR_PICSFULL:
+	            $w = 2560;
+	            $h = 2560;
+	            $q = 85;
+	            break;
 	        case Config::DIR_PICS:
 	            $w = 1280;
 	            $h = 1280;
@@ -133,7 +138,7 @@ final class PhotoFile extends Photo implements \JsonSerializable {
 	    }
 	    $fn_dst = $thumbdir.'/'.$this->filename_new;
 	    if(!$force && file_exists($fn_dst)) return;
-	    $oPic = new Thumbnail(Config::DIR_PICSFULL.$dd.'/', $this->filename_new);
+	    $oPic = new Thumbnail(Config::DIR_RAW.$dd.'/', $this->filename_new);
 	    $oPic->resize_image($w, $h, $fn_dst,$q);
 	}
 	
@@ -155,6 +160,7 @@ final class PhotoFile extends Photo implements \JsonSerializable {
 	}
 	
 	public function resizeImage($force=FALSE) {
+	    $this->createSingleThumb(Config::DIR_PICSFULL, $force);
 	    $this->createSingleThumb(Config::DIR_PICS, $force);
 	    $this->createSingleThumb(Config::DIR_TPICS, $force);
 	}

@@ -5,7 +5,7 @@ use photo\Model\DBModel;
 use photo\Model\Event;
 use photo\common\DBHelper;
 
-class EventDAO_pgsql extends AbstractDAO_pgsql {
+class EventDAO_pgsql extends AbstractDAO_pgsql implements IDAOEvent {
     
     function __construct() {
         $this->tablename = 'public.events';
@@ -50,6 +50,16 @@ class EventDAO_pgsql extends AbstractDAO_pgsql {
         $o = new Event();
         $this->fillFromDB($o,$rec);
         return $o;
+    }
+    
+    public function getMinSeqNum($id): int {
+        $sql = "SELECT MAX(seqnum) FROM public.photos WHERE event = ?";
+        $pdo = DBHelper::getPDO();
+        $sth = $pdo->prepare($sql);
+        if(!$sth->execute([$id])) return 0;
+        $rec = $sth->fetch(\PDO::FETCH_COLUMN);
+        if($rec==false) return 0;    
+        return $rec;
     }
     
     public static function getInstance()

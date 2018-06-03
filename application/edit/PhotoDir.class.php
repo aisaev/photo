@@ -6,6 +6,7 @@ require_once 'Thumbnail.class.php';
 use photo\Model\Photo;
 use \Exception;
 use photo\common\DBHelper;
+use photo\DAO\EventDAO;
 
 final class PhotoDir implements \JsonSerializable {
     public $parent_dir = NULL;
@@ -116,12 +117,15 @@ final class PhotoDir implements \JsonSerializable {
 	    $is_first = TRUE;
 	    $cur_path = $this->parent_dir.$this->dir;
 	    try {
+	        $event_dao = EventDAO::getInstance();
+	        $minseq = $event_dao->getMinSeqNum($this->defaults->event);
 	        foreach ($this->files as $oFile) {
 	            if($is_first) {
 	                $pdo = DBHelper::getPDO();
 	                if($pdo->beginTransaction()==FALSE) throw new Exception("Failed to start transaction");
 	                $is_first = false;
 	            }
+	            $oFile->seq+=$minseq;
 	            $oFile->saveDB($this->defaults);
 	        }
 	        if(!$is_first) {

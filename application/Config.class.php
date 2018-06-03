@@ -8,6 +8,7 @@ class Config {
 	const DIR_UNPROCESSED = self::DIR_EDIT . 'unprocessed/';
 	const DIR_PICSFULL = self::DIR_PUBLIC . 'full/';
 	const DIR_PICS = self::DIR_PUBLIC . 'pic/';
+	const DIR_RAW = self::DIR_PUBLIC . 'raw/';
 	const DIR_SPICS = self::DIR_PUBLIC . 'pic/';
 	const DIR_TPICS = self::DIR_PUBLIC . 'tmb/';	
 	const LNG_RU = 'ru', LNG_EN = 'en';
