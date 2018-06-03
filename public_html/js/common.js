@@ -92,11 +92,12 @@ class Event {
 	}
 	
 	nameToShow() {
-		return this.readableDates()+
-			'. '+(lng==LNG_RU?this.desc_r:this.desc_e);
+		var rd = this.readableDates(); 
+		return (rd==''?'':rd+'. ')+(lng==LNG_RU?this.desc_r:this.desc_e);
 	}
 	
 	readableDates() {
+		if (this.date_from=='Pinned') return '';
 		var df=this.date_from.split('-'); //0=yyyy,1=mm,2=dd
 		var dt=this.date_to.split('-'); //0=yyyy,1=mm,2=dd
 		var s='';
