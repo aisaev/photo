@@ -321,7 +321,9 @@ function copyFileToProd(level) {
 			if(d==o.d) {
 				//dir found, look for fil
 				var elDir = $(this).closest('div.dir.has-files');
-				$('.panel-heading .button-holder',elDir).hide();
+				$('.panel-heading .button-holder,button',elDir).hide();
+				$('.placedescr',elDir).prop('onclick',null).off('click');
+				$('select,input',elDir).prop('readonly','true');
 			}
 		});		
 	}
