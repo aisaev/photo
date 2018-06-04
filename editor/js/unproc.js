@@ -370,6 +370,10 @@ function copyFileToProd(level) {
 	
 }
 
+function deletePhoto(el) {
+	$(el).closest(".thumbnail").remove();
+}
+
 function editEvent(id=0) {
 	if(id==0) {
 		$("#evtedit form input").val('');
@@ -758,7 +762,7 @@ function sqlDate(dt) {
 
 function thumbHTML(d,f) {
 	var dt = '/unprocessed/'+d+'/.thumb/';
-	return '<img src="'+dt+'300/'+f+'" data-toggle="popover" data-full="'+dt+'1000/'+f+'">';	
+	return '<a target="_FULLSIZE" href="/unprocessed/'+d+'/'+f+'"><img src="'+dt+'300/'+f+'" data-toggle="popover" data-full="'+dt+'1000/'+f+'"></a>';	
 }
 
 

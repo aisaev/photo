@@ -53,6 +53,8 @@ transform: translate(-50%,-50%);
 }
 h3.dir,div.placedescr{cursor: pointer;}
 .fixed-top-right{position:absolute;top:0.5rem;right:0.5rem;}
+.fixed-bottom-right{position:absolute;bottom:0.5rem;right:0.5rem;}
+.thumbnail{position:relative;}
 .thumbnail select.pplid{max-width: 400px;}
 .spinner {
     border: 16px solid #f3f3f3; /* Light grey */
@@ -292,6 +294,7 @@ h3.dir,div.placedescr{cursor: pointer;}
 	<!-- for files -->
 	<div class="file-template my-template">
 		<div class="thumbnail photo">
+			<button class="btn btn-default fixed-bottom-right" onclick="return deletePhoto(this);"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
 			<div class="img spinner"></div>
 			<div class="caption">
 				<form class="file-data">

@@ -195,10 +195,14 @@ final class PhotoDir implements \JsonSerializable {
 	    
 	    $seq = 1;
 	    $changed=FALSE;
-	    foreach ($this->files as $oFile) {
+	    foreach ($this->files as $i=>$oFile) {	        
 	        $oFile->seq = $seq++;
 	        if(isset($file_idx[$oFile->filename])) {
 	            $changed = ($oFile->updateFromPOST($file_idx[$oFile->filename]) || $changed);
+	        } else {
+	            $changed = true;
+	            unset($this->files[$i]);
+	            unlink($path.$oFile->filename);
 	        }
 	    }
 	    if($changed) {
