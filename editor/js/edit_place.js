@@ -78,7 +78,7 @@ function SavePlaces() {
 		
 		var oNew={
 				id:oid==0?$('.id input',this).val():oid,
-				p:$('.p',this).val(),
+				p:parseInt($('.p',this).val()),
 				dr:$('.dr',this).val(),
 				de:$('.de',this).val(),
 				t:$('.t',this).val(),
@@ -140,7 +140,9 @@ function SavePlaces() {
 							places.r.push(oNew);
 							placeById[oNew.id]=oNew;
 						} else {
-							var oOld = placeById[r.id]
+							var oOld = placeById[r.id];
+							//just refresh
+							location.reload(true);
 						}
 					} else if(r.m) {
 						hasErrors=true;
