@@ -258,7 +258,10 @@ function callSave(o,op) {
 				copyFileToProd(0);
 			}
 		}
-		$("#msg").append(hAlert);			
+		$("#msg").append(hAlert);
+		setTimeout(function(){
+			$("#msg .alert-success").remove();
+		},5000)
 	})
 	.fail(function(jqxhr,textStatus,errorThrown){
 		var hAlert=$('<div class="alert alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button><span class="msgcnt"></div>');
@@ -321,7 +324,7 @@ function copyFileToProd(level) {
 			if(d==o.d) {
 				//dir found, look for fil
 				var elDir = $(this).closest('div.dir.has-files');
-				$('.panel-heading .button-holder,button',elDir).hide();
+				$('.panel-heading .button-holder,button,div.my-cmt-btn',elDir).hide();
 				$('.placedescr',elDir).prop('onclick',null).off('click');
 				$('select,input',elDir).prop('readonly','true');
 			}
