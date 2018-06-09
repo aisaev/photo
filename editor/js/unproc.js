@@ -327,8 +327,10 @@ function confirmBeforeSave(el) {
 
 function copyFileToProd(level) {
 	if(filesToProd.length==0) return;
-	var o = filesToProd.shift();
+	
 	if(level==0) {
+		//prepare to copy
+		var o = filesToProd[0];
 		var locked = false;
 		//try locking dir		
 		$.ajax({
@@ -344,7 +346,17 @@ function copyFileToProd(level) {
 				hAlert.addClass('alert-danger');
 				$("#msg").append(hAlert);
 			} else {
-				locked = true;
+				//hide Save button
+				$('h3.dir').each(function(){
+					var d = $(this).text();
+					if(d==o.d) {
+						//dir found, look for fil
+						var elDir = $(this).closest('div.dir.has-files');
+						markDirLocked(elDir);
+						return false;
+					}
+				});
+				copyFileToProd(1);
 			}
 		})
 		.fail(function(jqXHR,textStatus,errorThrown){
@@ -353,61 +365,54 @@ function copyFileToProd(level) {
 			hAlert.addClass('alert-danger');
 			$("#msg").append(hAlert);
 		});
-		if(!locked) return false;
-		//hide Save button
-		$('h3.dir').each(function(){
-			var d = $(this).text();
-			if(d==o.d) {
-				//dir found, look for fil
-				var elDir = $(this).closest('div.dir.has-files');
-				markDirLocked(elDir);
-				return false;
-			}
-		});	
-	}
-	$.ajax({
-		url: "api.php?op=cpf",
-		method: "POST",
-		data: o,
-		dataType: 'json'
-	})
-	.done(function(data){			
-		if((''+data['e'])=="0") {
-			if(data['r']) {
-				var oc = data['r'];
-				//success, remove pic
-				$('h3.dir').each(function(){
-					var d = $(this).text();
-					if(d==oc.d) {
-						//dir found, look for file
-						var elDir = $(this).closest('div.dir.has-files');
-						$('div.photo',elDir).each(function(){
-							var fn=$('h3.fn',this).text();
-							if(oc.f==fn) {
-								$(this).remove();
-								return false;
+		return;
+	} else {
+		//actual copying
+		var o = filesToProd.shift();		
+		$.ajax({
+			url: "api.php?op=cpf",
+			method: "POST",
+			data: o,
+			dataType: 'json'
+		})
+		.done(function(data){			
+			if((''+data['e'])=="0") {
+				if(data['r']) {
+					var oc = data['r'];
+					//success, remove pic
+					$('h3.dir').each(function(){
+						var d = $(this).text();
+						if(d==oc.d) {
+							//dir found, look for file
+							var elDir = $(this).closest('div.dir.has-files');
+							$('div.photo',elDir).each(function(){
+								var fn=$('h3.fn',this).text();
+								if(oc.f==fn) {
+									$(this).remove();
+									return false;
+								}
+							});
+							if($('div.photo',elDir).length==0) {
+								//no more photos, remove
+								$(elDir).remove();
 							}
-						});
-						if($('div.photo',elDir).length==0) {
-							//no more photos, remove
-							$(elDir).remove();
+							return false;
 						}
-						return false;
-					}
-				});
+					});
+				}
 			}
-		}
-	})
-	.fail(function(jqXHR,textStatus,errorThrown){
-		var hAlert=$('<div class="alert alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button><span class="msgcnt"></div>');
-		$(".msgcnt",hAlert).text(textStatus);
-		hAlert.addClass('alert-danger');
-		$("#msg").append(hAlert);		
-	})
-	.always(function(){
-		copyFileToProd(1);
-	});
+		})
+		.fail(function(jqXHR,textStatus,errorThrown){
+			var hAlert=$('<div class="alert alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button><span class="msgcnt"></div>');
+			$(".msgcnt",hAlert).text(textStatus);
+			hAlert.addClass('alert-danger');
+			$("#msg").append(hAlert);		
+		})
+		.always(function(){
+			copyFileToProd(1);
+		});	}
 	
+
 }
 
 function deletePhoto(el) {
