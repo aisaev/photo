@@ -16,7 +16,11 @@ div.photo {
 	margin-left: 2px;
 	max-width: 25%;
 }
-
+.dir .locked {
+	visibility: hidden;
+	height:0;
+	min-height:0;
+}
 div.my-template {
 	display: none;
 }
@@ -91,7 +95,7 @@ h3.dir,div.placedescr{cursor: pointer;}
 			<div class="navbar-collapse collapse">
 				<ul class="nav navbar-nav navbar-right">
 					<li class="active">
-						<button type="button" class="btn btn-default navbar-btn"
+						<button id="btnDraft" type="button" class="btn btn-default navbar-btn"
 							onclick="Save('draft')">Save draft</button></li>
 				</ul>
 			</div>

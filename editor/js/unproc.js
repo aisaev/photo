@@ -15,7 +15,7 @@ class PhotoFile {
 		}
 	}
 	
-	render(dir,ppldir) {
+	render(dir,ppldir,locked=false) {
 		var el = $("div.file-template").clone();
 		if(this.id!=0) {
 			$("input[name='id']",el).val(this.id);
@@ -67,7 +67,11 @@ class PhotoFile {
 			$('input[name="cr"]',el).attr("value",this.cr==null?'':this.cr);
 			$('input[name="ce"]',el).attr("value",this.ce==null?'':this.ce);
 			$('.my-cmt-btn',el).remove();
-		} 			
+		}
+		if(locked) {
+			$('.btn,.my-cmt-btn,div.place,div.people,div.comment',el).addClass('locked');
+			
+		}
 		return el.html();
 	}
 }
@@ -86,6 +90,7 @@ class PhotoDir {
 		this.evt=json['e'];
 		this.loc=json['l'];
 		this.ppl=json['p'];
+		this.locked=(json['k'] && json['k']==1?true:false);
 	}
 	
 	render(isRoot) {
@@ -96,6 +101,7 @@ class PhotoDir {
 			$("form",el).remove();
 			$(".button-holder",el).remove();
 		} else {
+			if(this.locked) $(".button-holder",el).remove();
 			$('.panel.dir',el).addClass('has-files');
 		}
 		if(this.evt==0 || this.loc==0) $('.btn-success',el).prop("disabled",true);
@@ -118,7 +124,7 @@ class PhotoDir {
 		for(var i=0;i<this.files.length;i++) {
 			var oFile=this.files[i];
 			if(oFile.lumix) lumix=true;
-			html_files +=oFile.render(this.dir,this.ppl);
+			html_files +=oFile.render(this.dir,this.ppl,this.locked);
 		}
 		var html_subdir = '';
 		for(var i=0;i<this.subdir.length;i++) {
@@ -126,6 +132,7 @@ class PhotoDir {
 		}
 		$('.panel-body',el).html(html_files+html_subdir);
 		if(!isRoot&&!lumix) $(".adjtime",el).remove();
+		if(this.locked) markDirLocked(el);
 		return el.html();
 	}
 	
@@ -233,6 +240,8 @@ function callSave(o,op) {
 	if(op=='db') {
 		$(".loader h2").text("Saving in DB");
 		$(".loader").show();
+	} else {
+		$('#btnDraft').prop("disabled",true);
 	}
 	
 	$.ajax({
@@ -255,6 +264,7 @@ function callSave(o,op) {
 					var oFile = new PhotoFile(data['r'][i]);
 					filesToProd.push({'d':o.d,'f':oFile.fn,'id':oFile.id});
 				}
+				$(".loader").hide();
 				copyFileToProd(0);
 			}
 		}
@@ -271,6 +281,7 @@ function callSave(o,op) {
 	})
 	.always(function() {
 		$(".loader").hide();
+		if(op=='draft') $('#btnDraft').prop("disabled",false);
 	});
 }
 
@@ -318,17 +329,41 @@ function copyFileToProd(level) {
 	if(filesToProd.length==0) return;
 	var o = filesToProd.shift();
 	if(level==0) {
+		var locked = false;
+		//try locking dir		
+		$.ajax({
+			url: "api.php?op=lbc",
+			method: "POST",
+			data: o,
+			dataType: 'json'
+		})
+		.done(function(data) {
+			if((''+data['e'])=="1") {
+				var hAlert=$('<div class="alert alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button><span class="msgcnt"></div>');
+				$(".msgcnt",hAlert).text(data['m']);
+				hAlert.addClass('alert-danger');
+				$("#msg").append(hAlert);
+			} else {
+				locked = true;
+			}
+		})
+		.fail(function(jqXHR,textStatus,errorThrown){
+			var hAlert=$('<div class="alert alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button><span class="msgcnt"></div>');
+			$(".msgcnt",hAlert).text(textStatus);
+			hAlert.addClass('alert-danger');
+			$("#msg").append(hAlert);
+		});
+		if(!locked) return false;
 		//hide Save button
 		$('h3.dir').each(function(){
 			var d = $(this).text();
 			if(d==o.d) {
 				//dir found, look for fil
 				var elDir = $(this).closest('div.dir.has-files');
-				$('.panel-heading .button-holder,button,div.my-cmt-btn',elDir).hide();
-				$('.placedescr',elDir).prop('onclick',null).off('click');
-				$('select,input',elDir).prop('readonly','true');
+				markDirLocked(elDir);
+				return false;
 			}
-		});		
+		});	
 	}
 	$.ajax({
 		url: "api.php?op=cpf",
@@ -344,7 +379,7 @@ function copyFileToProd(level) {
 				$('h3.dir').each(function(){
 					var d = $(this).text();
 					if(d==oc.d) {
-						//dir found, look for fil
+						//dir found, look for file
 						var elDir = $(this).closest('div.dir.has-files');
 						$('div.photo',elDir).each(function(){
 							var fn=$('h3.fn',this).text();
@@ -394,15 +429,6 @@ function editPerson(id=0) {
 	$("#ppledit").modal('show');
 }
 
-function pickPlacesToShow(parentLoc,result) {
-	result[parentLoc]=true;
-	var children = placeTree[parentLoc];
-	if(typeof children != 'undefined') {
-		for(var i=0;i<children.length;i++)
-			pickPlacesToShow(children[i],result);
-	}
-}
-
 function getUrlParameter(sParam) {
     var sPageURL = decodeURIComponent(window.location.search.substring(1)),
         sURLVariables = sPageURL.split('&'),
@@ -417,7 +443,11 @@ function getUrlParameter(sParam) {
         }
     }
     return '';
-};
+}
+
+function markDirLocked(elDir) {
+	$('.panel-heading .button-holder,.dir-defaults tbody,.btn,.my-cmt-btn,div.place,div.people,div.comment',elDir).hide();
+} 
 
 function openModal(e,isDir)
 {
@@ -461,6 +491,15 @@ function openModal(e,isDir)
 	$("#peoplesel").val(currentPeople).trigger("change");
 			
 	$("#elp").modal('show');
+}
+
+function pickPlacesToShow(parentLoc,result) {
+	result[parentLoc]=true;
+	var children = placeTree[parentLoc];
+	if(typeof children != 'undefined') {
+		for(var i=0;i<children.length;i++)
+			pickPlacesToShow(children[i],result);
+	}
 }
 
 function prepModal() {

@@ -9,16 +9,19 @@ use photo\common\DBHelper;
 use photo\DAO\EventDAO;
 
 final class PhotoDir implements \JsonSerializable {
+    const FN_LOCK = '.dir_lock';
     public $parent_dir = NULL;
 	public $dir = NULL;
 	public $files = [];
 	public $subdir = [];
+	public $lock = false;
 	
 	public $defaults = NULL;
 	
 	public function __construct($parent_dir,$dir_name) {
 	    $this->parent_dir = $parent_dir;
 	    $this->dir = $dir_name;
+	    $this->lock = file_exists($parent_dir.$dir_name.'/'.self::FN_LOCK);	    
 	}
 	
 	public function collect($locked=false) {
@@ -29,7 +32,6 @@ final class PhotoDir implements \JsonSerializable {
 	    if(file_exists($dir_json)) {
 	        $this->defaults = unserialize(file_get_contents($dir_json));
 	    }
-
 	    $l_d = dir($path);
 	    if($l_d == NULL || $l_d ===FALSE) return FALSE;
 	        
@@ -108,7 +110,8 @@ final class PhotoDir implements \JsonSerializable {
 				's' => $this->subdir,
 				'e' => ($this->defaults!=NULL?$this->defaults->event:0),
 				'l' => ($this->defaults!=NULL?$this->defaults->location:0),
-				'p' => ($this->defaults!=NULL?$this->defaults->people:[])
+				'p' => ($this->defaults!=NULL?$this->defaults->people:[]),
+		        'k' => ($this->lock?1:0)
 		];
 	}
 	
@@ -160,6 +163,21 @@ final class PhotoDir implements \JsonSerializable {
 	    //if we're here, no exceptions occured, can remove from unprocessed
 	    //array_map('unlink', glob($cur_path.'/*'));
 	    exec('rm -R '.$this->parent_dir.$this->dir);	    
+	}
+	
+	public function lock() {
+	    if($this->lock) throw new \Exception('Already locked');
+	    else {
+	        if(!file_put_contents($path = $this->parent_dir.$this->dir.'/'.self::FN_LOCK,'lock'))
+	            throw new \Exception('Failed to lock');
+	    }
+	}
+	
+	public function unlock() {
+	    if(!$this->lock) throw new \Exception('Not locked');
+	    else {
+	        if(!unlink($this->parent_dir.$this->dir.'/'.self::FN_LOCK)) throw new \Exception('Failed to unlock');
+	    }
 	}
 	
 	public function updateFromPOST($defaults) {

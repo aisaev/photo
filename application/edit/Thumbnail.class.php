@@ -75,7 +75,7 @@ class Thumbnail
         $thumbfile_small = $thumbdir.'/300/'.$this->file;
         $thumbfile_big = $thumbdir.'/1000/'.$this->file;
         if(!is_file($thumbfile_small) || $force) {
-            if($this->resize_image(300, 300, $thumbfile_small)==false)
+            if($this->resize_image(700, 300, $thumbfile_small)==false)
                 throw new \Exception('Failed to create thumb '.$thumbfile_small);
         }
         if(!is_file($thumbfile_big) || $force) {

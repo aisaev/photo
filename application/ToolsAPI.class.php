@@ -103,6 +103,13 @@ final class ToolsAPI
                     $a[$fn] = $this->prepareSmallerPics($fn);
                 }
                 return $a;
+            case 'lbc':
+                //lock dir before processing file copy to production
+                if(!isset($_POST['d'])) throw new \Exception("Invalid arguments");
+                $dir = $_POST['d'];
+                $this->oDir = new PhotoDir(Config::DIR_UNPROCESSED,$dir);
+                $this->oDir->lock();
+                return true;
             case 'll':
                 $dao = LocationDAO::getInstance();
                 return $dao->getList();
