@@ -4,6 +4,7 @@ use photo\Model\Event;
 use photo\Model\Location;
 use photo\Model\Person;
 use photo\Model\Photo;
+use photo\common\Config;
 use photo\common\DBHelper;
 
 class PhotoDAO_pgsql extends AbstractDAO_pgsql implements IPhotoDAO {
@@ -110,8 +111,16 @@ class PhotoDAO_pgsql extends AbstractDAO_pgsql implements IPhotoDAO {
     }
     
     public function getListByLocation(Location $loc):array {
+        $a=[];
+        //if less than 300 photos in the subtree or leaf node - retrieve all photos
+        //recursive call, to make things easuer, we will get event data and plug date from-to and seq into the photo itself
+        if($loc->allPhotoCnt <= Config::MAX_PHOTO_LOC && $loc->children != null) {
+            foreach ($loc->children as $i=>$oc) {
+                $a = array_merge($a,$this->getListByLocation($oc));        
+            }
+        }
         //list of photos for location, used in location page
-        //prefill people on photos
+        //prefill people on photos        
         $sql = 'SELECT p.photoid, pplid FROM photos p JOIN ppl2photo p2p ON p2p.photoid = p.photoid '.
             'WHERE "Node" = ?';
         $pdo = DBHelper::getPDO();
@@ -122,10 +131,9 @@ class PhotoDAO_pgsql extends AbstractDAO_pgsql implements IPhotoDAO {
             if(!isset($p2p['photoid'])) $p2p['photoid']=[];
             $p2p[$rec['photoid']][]=intval($rec['pplid']);
         }
-        $sql = 'SELECT * FROM photos WHERE "Node" = ? ORDER BY taken_on DESC, event DESC, seqnum DESC, photoid DESC';
+        $sql = 'SELECT * FROM photos WHERE "Node" = ?';
         $sth = $pdo->prepare($sql);
         $sth->execute([$loc->id]);
-        $a=[];
         while($rec = $sth->fetch(\PDO::FETCH_ASSOC)) {
             $o = new Photo();
             $this->fillFromDB($o, $rec);
@@ -133,6 +141,7 @@ class PhotoDAO_pgsql extends AbstractDAO_pgsql implements IPhotoDAO {
             else $o->people = null;
             $a[] = $o;
         }
+        //ORDER BY taken_on DESC, event DESC, seqnum DESC, photoid DESC
         return $a;
     }
     

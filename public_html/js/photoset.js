@@ -40,16 +40,21 @@ $(document).ready(function() {
 	var s = '', sLoc='';
 	//locations: render subnodes
 	if(app == APP_PLACE) { 
-		if(o.parent>0) {
+		if(o.id>0) {
 			sLoc+='<ol class="breadcrumb">';
-			for(var pid=o.parent; pid>0;) {
+			for(var pid=o.parent; pid>=0;) {
 				var op=ll_idx[pid];
 				sLoc+='<li><a href="/place/'+op.id+'">'+op.descr+'</a></li>';
 				pid = op.parent;
+				if(op.id==0) break;
 			}			
 			sLoc+='</ol>';
 		}
 		if(o.children) {
+			o.children.sort(function(a,b){
+				if(a.d<b.d) return -1;
+				else return 1;
+			});
 			sLoc += '<div class="subloc"><ul>';
 			for(var i=0;i<o.children.length;i++) {
 				oc = o.children[i];

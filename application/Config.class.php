@@ -7,12 +7,13 @@ class Config {
 	const DIR_PUBLIC = self::DIR_ROOT.'public_html/';
 	const DIR_UNPROCESSED = self::DIR_EDIT . 'unprocessed/';
 	const DIR_PICSFULL = self::DIR_PUBLIC . 'full/';
-	const DIR_PICS = self::DIR_PUBLIC . 'pic/';
+	const DIR_PICS = self::DIR_PUBLIC . 'pics/';
 	const DIR_RAW = self::DIR_PUBLIC . 'raw/';
-	const DIR_SPICS = self::DIR_PUBLIC . 'pic/';
+	const DIR_SPICS = self::DIR_PUBLIC . 'pics/';
 	const DIR_TPICS = self::DIR_PUBLIC . 'tmb/';	
 	const LNG_RU = 'ru', LNG_EN = 'en';
-	const MODE_EDIT = 0, MODE_EVENT = 1, MODE_PEOPLE = 2, MODE_PLACE = 3;
+	const MAX_PHOTO_LOC = 300;
+	const MODE_EDIT = 0, MODE_EVENT = 1, MODE_PEOPLE = 2, MODE_PLACE = 3, MODE_LL = 4;
 	
 	static public $lng = self::LNG_RU;
 	static public $__mode = self::MODE_EVENT;

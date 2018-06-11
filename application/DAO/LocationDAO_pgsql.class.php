@@ -4,6 +4,7 @@ namespace photo\DAO;
 use photo\Model\DBModel;
 use photo\Model\Location;
 use photo\common\DBHelper;
+use photo\common\Config;
 
 class LocationDAO_pgsql extends AbstractDAO_pgsql implements ILocationDAO {
     
@@ -22,8 +23,8 @@ class LocationDAO_pgsql extends AbstractDAO_pgsql implements ILocationDAO {
             ['"CommentE"','comment_e','ce',FILTER_SANITIZE_STRING],
             ['"PPN"','photoCnt','c',FILTER_SANITIZE_NUMBER_INT],
             ['"PPNSnt"','privatePhotoCnt','cs',FILTER_SANITIZE_NUMBER_INT],
-            ['"PPNChild"','allPhotoCnt','a',FILTER_SANITIZE_NUMBER_INT],
-            ['"PPNChildSnt"','allPrivatePhotoCnt','as',FILTER_SANITIZE_NUMBER_INT]
+            ['"PPNChild"','childrenPhotoCnt','a',FILTER_SANITIZE_NUMBER_INT],
+            ['"PPNChildSnt"','childrenPrivatePhotoCnt','as',FILTER_SANITIZE_NUMBER_INT]
         ];
         $this->keys = ['id'];
         $this->db_keys = ['"Node"'];
@@ -106,6 +107,13 @@ class LocationDAO_pgsql extends AbstractDAO_pgsql implements ILocationDAO {
         }
     }
     
+    public function fillFromDB(Location &$o, $rec) {
+        parent::fillFromDB($o, $rec);
+        $o->allPhotoCnt = $o->photoCnt + $o->childrenPhotoCnt;
+        $o->allPrivatePhotoCnt = $o->privatePhotoCnt + $o->childrenPrivatePhotoCnt;
+        
+    }
+    
     public function findById(array $pk): DBModel {
         $o = new Location();
         $pdo = DBHelper::getPDO();
@@ -143,17 +151,24 @@ class LocationDAO_pgsql extends AbstractDAO_pgsql implements ILocationDAO {
                 $o->allPhotoCnt+=$oc->allPhotoCnt+$oc->privatePhotoCnt;
             }
         }
+        if($o->allPhotoCnt<Config::MAX_PHOTO_LOC && $o->children!=NULL) {
+            foreach ($o->children as $i=>$oc) {
+                $this->readChildren($oc);
+            }
+        }
     }
     
     public function readParents(Location &$o) {
+        if($o->id==0) return;
         //read nearest children
         $pdo = DBHelper::getPDO();
         $id=$o->parent;
-        while($id>0) {
+        while($id>=0) {
             if($o->parentList==NULL) $o->parentList=[];
             $op = $this->findById([$id]);
-            $id = $op->parent;
             $o->parentList[] = $op;
+            if($id==0) break;
+            $id = $op->parent;
         }
     }
     

@@ -123,7 +123,7 @@ final class PhotoFile extends Photo implements \JsonSerializable {
 	            $q = 85;
 	            break;
 	        case Config::DIR_TPICS:
-	            $w = 480;
+	            $w = 640;
 	            $h = 480;
 	            $q = 80;
 	            break;

@@ -226,18 +226,23 @@ final class ToolsAPI
     private function createSingleThumb($size, $fn_src)
     {
         switch ($size) {
+            case Config::DIR_PICSFULL:
+                $w = 2560;
+                $h = 2560;
+                $q = 85;
+                break;
             case Config::DIR_PICS:
                 $w = 1280;
                 $h = 1280;
-                $q = 70;
+                $q = 85;
                 break;
             case Config::DIR_TPICS:
-                $w = 480;
+                $w = 640;
                 $h = 480;
-                $q = 50;
+                $q = 80;
                 break;
             default:
-                throw new \Exception('Unrecognized size ' . $size);
+                throw new \Exception('Unrecognized size '.$size);
         }
         $dd = substr($fn_src, 0, 2);
         $thumbdir = $size . $dd;
@@ -290,37 +295,38 @@ final class ToolsAPI
         $this->checkCreateDir(Config::DIR_PICS);
         $this->checkCreateDir(Config::DIR_TPICS);
         
-        $dirNN = dir(Config::DIR_PICSFULL);
+        $dirNN = dir(Config::DIR_RAW);
         $a = [];
         while (false !== ($l_d = $dirNN->read())) {
             if ($l_d == '.' || $l_d == '..')
                 continue;
-                if (! is_dir(Config::DIR_PICSFULL . $l_d))
+                if (! is_dir(Config::DIR_RAW . $l_d)) {
                     continue;
-                    $l_dp = Config::DIR_PICS . $l_d . '/';
-                    $l_dt = Config::DIR_TPICS . $l_d . '/';
-                    
-                    $this->checkCreateDir($l_dp);
-                    $this->checkCreateDir($l_dt);
-                    
-                    $files = dir(Config::DIR_PICSFULL . $l_d);
-                    while (false !== ($l_f = $files->read())) {
-                        // only consider JPG files
-                        if ($l_f == '.' || $l_f == '..') {
-                            continue;
-                        }
-                        if (is_dir(Config::DIR_PICSFULL . $l_d . '/'.$l_f)) {
-                            continue;
-                        }
-                        if (preg_match('/^\d\d\d\d\d\.jpg$/', $l_f) == 0) {
-                            continue;
-                        }
-                        // check if "pic" and "tmb" exist
-                        if (! file_exists($l_dp . $l_f) || ! file_exists($l_dt . $l_f)
-                            || filesize($l_dp . $l_f)==0 || filesize($l_dt . $l_f)==0) {
-                                $a[] = $l_f;
-                            }
+                }
+                $l_dp = Config::DIR_PICS . $l_d . '/';
+                $l_dt = Config::DIR_TPICS . $l_d . '/';
+                
+                $this->checkCreateDir($l_dp);
+                $this->checkCreateDir($l_dt);
+                
+                $files = dir(Config::DIR_RAW . $l_d);
+                while (false !== ($l_f = $files->read())) {
+                    // only consider JPG files
+                    if ($l_f == '.' || $l_f == '..') {
+                        continue;
                     }
+                    if (is_dir(Config::DIR_RAW . $l_d . '/'.$l_f)) {
+                        continue;
+                    }
+                    if (preg_match('/^\d\d\d\d\d\.jpg$/', $l_f) == 0) {
+                        continue;
+                    }
+                    // check if "pic" and "tmb" exist
+                    if (! file_exists($l_dp . $l_f) || ! file_exists($l_dt . $l_f)
+                        || filesize($l_dp . $l_f)==0 || filesize($l_dt . $l_f)==0) {
+                            $a[] = $l_f;
+                    }
+                }
         }
         sort($a);
         return $a;
@@ -332,7 +338,8 @@ final class ToolsAPI
         if (preg_match('/^\d\d\d\d\d\.jpg$/', $f) == 0) {
             return 'Bad file name ' . $f;
         }
-        try {
+        try 
+        {
             $this->createSingleThumb(Config::DIR_PICS, $f);
             $this->createSingleThumb(Config::DIR_TPICS, $f);
         } catch (\Exception $e) {

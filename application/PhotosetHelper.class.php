@@ -64,6 +64,9 @@ class PhotosetHelper {
             }
             $dir.='/';
             $file_name = $dir.$id.'.js';
+            $html = '<script src="'.$uri.'"></script>';
+            if($pfx==self::PFX_PLACE) $html.='<script src="/'.self::PFX_PLACE.'/'.Config::$lng.'/list.js"></script>';
+            
             //check if /{event|place|person}/{lng}/{id}.js exist
             if(!file_exists($file_name)) {
                 $listEvents = [];
@@ -106,8 +109,9 @@ class PhotosetHelper {
                             $listPeople = PersonDAO::getInstance()->getList(array_keys($hashPpl));
                             break;
                         case self::PFX_PLACE:
+                            $this->getPlaceList();
                             $ol = LocationController::getInstance()->ReadSingle($id);
-                            $listPhotos=PhotoController::getInstance()->ListForLocation($ol);
+                            $listPhotos=PhotoController::getInstance()->ListForLocation($ol,0);
                             $listPlaces = [$ol];
                             if($ol->parentList!=NULL) {
                                 foreach ($ol->parentList as $olp) $listPlaces[]=$olp;
@@ -143,10 +147,24 @@ class PhotosetHelper {
         	    $pl_json = 'var people = '.json_encode($listPeople,JSON_UNESCAPED_UNICODE).';';
         	    $ph_json = 'var photos = '.json_encode($listPhotos,JSON_UNESCAPED_UNICODE).';';
         	    
-        	    file_put_contents($file_name, $el_json."\n".$ll_json."\n".$pl_json."\n".$ph_json);	    
-            }
-            return '<script src="'.$uri.'"></script>';
+        	    file_put_contents($file_name, $el_json."\n".$ll_json."\n".$pl_json."\n".$ph_json);
+            }           
+            return $html;
         }        
+    }
+    
+    public function getPlaceList() {
+        $fn = Config::DIR_PUBLIC.self::PFX_PLACE.'/'.Config::$lng.'/list.js';        
+        if(!file_exists($fn)) {
+            $dao = LocationDAO::getInstance();
+            $a = $dao->getList();
+            $cur_mode = Config::$__mode;
+            Config::$__mode = Config::MODE_LL;
+            $ll_json = 'var places_all = '.json_encode($a,JSON_UNESCAPED_UNICODE).';';
+            Config::$__mode = $cur_mode;
+            file_put_contents($fn, $ll_json);
+        }
+        return $fn;
     }
 }
 ?>

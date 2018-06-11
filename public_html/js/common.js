@@ -123,8 +123,8 @@ class Event {
 class Place {
 	constructor(json)
 	{
-		this.id=json['id']?json['id']:json['i'];
-		this.parent=(json['p']?json['p']:0);
+		this.id=(typeof json['id'] === 'undefined'?json['i']:json['id']);
+		this.parent=(typeof json['p'] === 'undefined'?0:json['p']);
 		this.children=false;
 		if(json['d']) {
 			this.descr = this.desc_en = this.desc_ru = json['d'];
