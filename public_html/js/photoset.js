@@ -67,6 +67,7 @@ $(document).ready(function() {
 	var pad = '00000';
 	for (var i = 0; i < photos.length; i++) {
 		var op = new Photo(photos[i]);
+		op.idx = i; //current photo index to know which one is next or previous
 		switch(app) {
 			case APP_EVENT: 
 				op.event = id; 
@@ -86,5 +87,22 @@ $(document).ready(function() {
 			el.parent().removeClass("lazy-loading");
 		}
 	});
-
+	
+	$("#photoDetails").keyup(function(event){
+		var ctl_name="#largePhoto .carousel-control.";
+		switch(event.which) {
+		case 37: //left
+			ctl_name+='left';
+			break;
+		case 39: //right
+			ctl_name+='right';
+			break;
+		default:
+			return false;
+		}
+		var ctl = $(ctl_name);
+		if(ctl.is(":visible")) {
+			eval(ctl.attr("onclick")+';');
+		}
+	});
 });

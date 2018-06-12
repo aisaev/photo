@@ -393,11 +393,30 @@ function buildPplList(a) {
 }
 
 function showDetails(id) {
+	if($("#photoDetails").is(":visible")) {
+		hideDetails();
+	}
+	$("#photoid").val(id);
 	var op=pl_idx[id];
-	var img=$("<img onload='adjustSize(this);' onclick='hideDetails();'>");
+	var img=$("<img onload='adjustSize(this);'>");
 	$("#largePhoto img").replaceWith(img);
 	var fname=op.dir_name+'/'+op.file_name+'.jpg';
 	$("#largePhoto img").attr('src','/pics/'+fname);
+	//carousel init
+	if(typeof op.idx !== 'undefined') {
+		if(op.idx==0) {
+			//1st photo, hide left arrow
+			$("#largePhoto .carousel-control.left").hide();
+		} else {
+			$("#largePhoto .carousel-control.left").show().attr("onclick","showDetails("+photos[op.idx-1].i+")");
+		}
+		if(op.idx>=(photos.length-1)) {
+			//last photo, hide right arrow
+			$("#largePhoto .carousel-control.right").hide();
+		} else {
+			$("#largePhoto .carousel-control.right").show().attr("onclick","showDetails("+photos[op.idx+1].i+")");
+		}
+	}
 	var evtDescr=el_idx[op.event].nameToShow();
 	if(app!=APP_EVENT) {
 		evtDescr = '<a href="/event/'+op.event+'">'+evtDescr+'</a>';

@@ -3,14 +3,13 @@ body {
 	padding-top: 70px;
 }
 li.my-lng img{max-width:24px;}
-#largePhoto,#details{display: inline-block;top:0px;}
+#largePhoto,#details{display: inline-block;top:0px;position:relative;}
 div.photo {
 	display: inline-block;
-	padding: 3px;
+	padding: 2px;
 	position: relative;
 }
 .photo img {
-	border: 7px solid black;
 	cursor: pointer;
 }
 #photoDetails, #photoDetails .modal-content, #photoDetails .modal-dialog{
@@ -20,6 +19,9 @@ div.photo {
 	color: white;
 }
 #largePhoto img{cursor:pointer;}
+.left-slide{}
 .content-center{text-align: center;}
 #details{text-align:left;}
 .lazy-loading{width:360px;height: 360px;}
+#largePhoto .carousel-control { visibility: hidden; }
+#largePhoto:hover .carousel-control { visibility: visible; }
