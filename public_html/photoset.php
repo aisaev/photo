@@ -8,14 +8,12 @@ $proc = new PhotosetHelper();
 <meta charset="UTF-8">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 <link href="/bootstrap/css/bootstrap.css" rel="stylesheet">
-<link rel="stylesheet" type="text/css" href="/slick/slick.css"/>
 <link href="/css/common.css" rel="stylesheet">
 <title></title>
 <script src="/js/jquery.js"></script>
 <script src="/bootstrap/js/bootstrap.js"></script>
 <script src="/js/jquery.lazy-master/jquery.lazy.min.js"></script>
 <script src="/js/jquery.lazy-master/jquery.lazy.plugins.min.js"></script>
-<script src="/slick/slick.min.js"></script>
 <script src="/js/config.js"></script>
 <?php
 echo $proc->get_data_file_name();
