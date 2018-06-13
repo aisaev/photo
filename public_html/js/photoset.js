@@ -89,20 +89,22 @@ $(document).ready(function() {
 	});
 	
 	$("#photoDetails").keyup(function(event){
-		var ctl_name="#largePhoto .carousel-control.";
 		switch(event.which) {
 		case 37: //left
-			ctl_name+='left';
+			event.preventDefault();
+			photoCarousel('left');
 			break;
 		case 39: //right
-			ctl_name+='right';
+			event.preventDefault();
+			photoCarousel('right');
 			break;
 		default:
 			return false;
 		}
-		var ctl = $(ctl_name);
-		if(ctl.is(":visible")) {
-			eval(ctl.attr("onclick")+';');
-		}
+	});
+	
+	swipedetect($("#largePhoto")[0],function(direction){
+		if(direction!='left'&&direction!='right') return false;
+		photoCarousel(direction=='left'?'right':'left');		
 	});
 });

@@ -17,7 +17,7 @@ var readableMonth={'en':['january','february','march','april','may','june','july
 				   'ru':["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"] };
 
 var reloadOnFTH=true;
-var isMobile=false;//(navigator.userAgent.match(/(mobile|android)/i)!==null);//(typeof window.orientation!=='undefined');
+var isMobile=(navigator.userAgent.match(/(mobile|android)/i)!==null);//(typeof window.orientation!=='undefined');
 var mode=1; //1=photoset,0=edit
 var app=APP_EVENT;
 
@@ -42,14 +42,9 @@ class Photo {
 	}
 	
 	htmlThumbnail() {
-		var html='<div class="thumb photo lazy-loading">';
-		if(isMobile) {
-			setCookie('photo',JSON.stringify(this),1);
-			html+='<a target="PHOTO" href="photo.html?'+this.id+'">';
-		}
-		html+='<img class="lazy" data-src="/tmb/'+this.dir_name+'/'+this.file_name+'.jpg"';
-		if(!isMobile) html+=' onclick="showDetails('+this.id+');return false;"';
-		return html+'style="max-height:'+(fullThumbnails?480:320)+'px;">'+(isMobile?'</a>':'')+'</div>';
+		var html='<div class="thumb photo"><a class="pic-det lazy-loading" href="#'+this.id+'" onclick="showDetails('+this.id+');"><img class="lazy" data-src="/tmb/'+
+			this.dir_name+'/'+this.file_name+'.jpg"';
+		return html+'style="max-height:'+(fullThumbnails?480:320)+'px;"></div>';
 	}
 	
 	comment() {
@@ -258,6 +253,7 @@ function initPhotoDetails()
 }
 
 function adjustSize(el){
+	/*
 	var ph=el.clientHeight;
 	var pw=el.clientWidth;
 	if(ph==0){
@@ -291,7 +287,14 @@ function adjustSize(el){
 			rh=ph;
 		}
 		if(w-rw-80>500) $("#details").css('width',w-rw-80);
-	}
+	} */
+	$(el).on( "swipeleft", function(event) {
+		photoCarousel('left');
+	})
+	.on( "swiperight", function(event) {
+		photoCarousel('right');
+	});
+
 	return false;
 };	
 
@@ -398,9 +401,9 @@ function showDetails(id) {
 	}
 	$("#photoid").val(id);
 	var op=pl_idx[id];
-	var img=$("<img onload='adjustSize(this);'>");
-	$("#largePhoto img").replaceWith(img);
 	var fname=op.dir_name+'/'+op.file_name+'.jpg';
+	var img=$("<a class='img' href='/full/"+fname+"' target='_PHOTO'><img onload='adjustSize(this);'></a>");
+	$("#largePhoto a.img").replaceWith(img);
 	$("#largePhoto img").attr('src','/pics/'+fname);
 	//carousel init
 	if(typeof op.idx !== 'undefined') {
@@ -429,13 +432,63 @@ function showDetails(id) {
 	if(cmt=='') $("#details .cmt").hide();
 	else { $("dd.cmt").text(cmt); $("#details .cmt").show(); }	
 	(op.taken_on==null?$('.ton').hide():$("dd.ton").text(op.taken_on));
-	$("#picfull").html("<a href='/full/"+fname+"' target='_PHOTO'><img src='/img/full.png'></a>");
-	$("#photoDetails").modal('show');	
+	//$("#picfull").html("<a href='/full/"+fname+"' target='_PHOTO'><img src='/img/full.png'></a>");
+	$("#photoDetails").height(document.documentElement.clientHeight).modal('show');	
 }
 
 function hideDetails() {
 	$('#photoDetails').modal('hide');
 	return false;
+}
+
+function swipedetect(el, callback){
+	  
+    var touchsurface = el,
+    swipedir,
+    startX,
+    startY,
+    distX,
+    distY,
+    threshold = 150, //required min distance traveled to be considered swipe
+    restraint = 100, // maximum distance allowed at the same time in perpendicular direction
+    allowedTime = 300, // maximum time allowed to travel that distance
+    elapsedTime,
+    startTime,
+    handleswipe = callback || function(swipedir){}
+  
+    touchsurface.addEventListener('touchstart', function(e){
+        var touchobj = e.changedTouches[0]
+        swipedir = 'none'
+        dist = 0
+        startX = touchobj.pageX
+        startY = touchobj.pageY
+        startTime = new Date().getTime() // record time when finger first makes contact with surface
+        //e.preventDefault()
+    }, false)
+  
+    touchsurface.addEventListener('touchmove', function(e){
+        //e.preventDefault() // prevent scrolling when inside DIV
+    }, false)
+  
+    touchsurface.addEventListener('touchend', function(e){
+        var touchobj = e.changedTouches[0]
+        distX = touchobj.pageX - startX // get horizontal dist traveled by finger while in contact with surface
+        distY = touchobj.pageY - startY // get vertical dist traveled by finger while in contact with surface
+        elapsedTime = new Date().getTime() - startTime // get time elapsed
+        if (elapsedTime <= allowedTime){ // first condition for awipe met
+            if (Math.abs(distX) >= threshold && Math.abs(distY) <= restraint){ // 2nd condition for horizontal swipe met
+                swipedir = (distX < 0)? 'left' : 'right' // if dist traveled is negative, it indicates left swipe
+            }
+            else if (Math.abs(distY) >= threshold && Math.abs(distX) <= restraint){ // 2nd condition for vertical swipe met
+            	return false;
+                swipedir = (distY < 0)? 'up' : 'down' // if dist traveled is negative, it indicates up swipe
+            }
+        } else {
+        	return false;
+        }
+        handleswipe(swipedir)
+        e.preventDefault()
+    }, false)
 }
 
 function toggleSentimental() {
@@ -452,6 +505,18 @@ function toggleFullThumbnail() {
 	return false;
 }
 
+function photoCarousel(direction) {
+	switch(direction) {
+	case 'left': case 'right':
+		var ctl_name="#largePhoto .carousel-control."+direction;
+		var ctl = $(ctl_name);
+		if(ctl.is(":visible")) {
+			eval(ctl.attr("onclick")+';');
+		}	
+	}
+}
+
 $(document).ready(function() {
 	initGlobal();
 });
+

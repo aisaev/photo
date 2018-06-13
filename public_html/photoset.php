@@ -8,12 +8,14 @@ $proc = new PhotosetHelper();
 <meta charset="UTF-8">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 <link href="/bootstrap/css/bootstrap.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="/slick/slick.css"/>
 <link href="/css/common.css" rel="stylesheet">
 <title></title>
 <script src="/js/jquery.js"></script>
 <script src="/bootstrap/js/bootstrap.js"></script>
 <script src="/js/jquery.lazy-master/jquery.lazy.min.js"></script>
 <script src="/js/jquery.lazy-master/jquery.lazy.plugins.min.js"></script>
+<script src="/slick/slick.min.js"></script>
 <script src="/js/config.js"></script>
 <?php
 echo $proc->get_data_file_name();
@@ -38,7 +40,7 @@ echo $proc->get_data_file_name();
 				<div class="content-center">
     				<div id="largePhoto">
     					<a class="carousel-control left" role="button"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span></a>
-    					<img src="">
+    					<a class='img'><img src=""></a>
     					<a class="carousel-control right" role="button"><span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></a>
     				</div>
     				<div id="details" style="min-width: 30%;margin-top: 10px;">
@@ -57,5 +59,6 @@ echo $proc->get_data_file_name();
 		</div>
 	</div>
 </div>
+
 </body>
 </html>

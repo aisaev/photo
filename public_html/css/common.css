@@ -23,5 +23,5 @@ div.photo {
 .content-center{text-align: center;}
 #details{text-align:left;}
 .lazy-loading{width:360px;height: 360px;}
-#largePhoto .carousel-control { visibility: hidden; }
+#detail-template,#largePhoto .carousel-control { visibility: hidden; }
 #largePhoto:hover .carousel-control { visibility: visible; }
