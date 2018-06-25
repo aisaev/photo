@@ -29,10 +29,10 @@ class Photo {
 		this.place=json['l'];
 		this.people=json['p']?json['p']:[];
 		if(json['c']) {
-			this.comment_en = this.comment_ru = json['c'];
+			this.comment_en = this.comment_ru = smartText(json['c']);
 		} else {
-			this.comment_ru = json['cr']?json['cr']:null;
-			this.comment_en = json['ce']?json['ce']:null;
+			this.comment_ru = json['cr']?smartText(json['cr']):null;
+			this.comment_en = json['ce']?smartText(json['ce']):null;
 		}
 		this.taken_on = json['t']?json['t']:null;
 		var fn=''+this.id,pad='0000';
@@ -430,7 +430,10 @@ function showDetails(id) {
 	(op.people.length>0?$("#details .ppl").show():$("#details .ppl").hide());
 	var cmt=op.comment();
 	if(cmt=='') $("#details .cmt").hide();
-	else { $("dd.cmt").text(cmt); $("#details .cmt").show(); }	
+	else { 
+		$("dd.cmt").html(cmt); 
+		$("#details .cmt").show(); 
+	}	
 	(op.taken_on==null?$('.ton').hide():$("dd.ton").text(op.taken_on));
 	//$("#picfull").html("<a href='/full/"+fname+"' target='_PHOTO'><img src='/img/full.png'></a>");
 	$("#photoDetails").height(document.documentElement.clientHeight).modal('show');	
@@ -439,6 +442,13 @@ function showDetails(id) {
 function hideDetails() {
 	$('#photoDetails').modal('hide');
 	return false;
+}
+
+function smartText(s) {
+	//process long text and try to make it HTML-friendly:
+	//- line breaks replaced with <br/>
+	//- href:// without preceding > replaced with proper links
+	return linkify(s).replace(/\n/gim,"<br/>");	
 }
 
 function swipedetect(el, callback){
@@ -503,6 +513,21 @@ function toggleFullThumbnail() {
 	setCookie(COOKIE_FULL_THUMB,fullThumbnails,3650);
 	if(reloadOnFTH) location.reload();	
 	return false;
+}
+
+function linkify(inputText) {
+	//convert URL to html link
+    var replacedText, replacePattern1, replacePattern2;
+
+    //URLs starting with http://, https://, or ftp://
+    replacePattern1 = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
+    replacedText = inputText.replace(replacePattern1, '<a href="$1" target="_blank">$1</a>');
+
+    //URLs starting with "www." (without // before it, or it'd re-link the ones done above).
+    replacePattern2 = /(^|[^\/])(www\.[\S]+(\b|$))/gim;
+    replacedText = replacedText.replace(replacePattern2, '$1<a href="http://$2" target="_blank">$2</a>');
+
+    return replacedText;
 }
 
 function photoCarousel(direction) {

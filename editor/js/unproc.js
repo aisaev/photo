@@ -62,15 +62,16 @@ class PhotoFile {
 			}
 		}
 		$("select.pplid",el).html(html);
-		if(this.cr!==null || this.ce!==null) {
-			$('div.comment',el).show();
-			$('input[name="cr"]',el).attr("value",this.cr==null?'':this.cr);
-			$('input[name="ce"]',el).attr("value",this.ce==null?'':this.ce);
-			$('.my-cmt-btn',el).remove();
+		if(this.cr!==null) {
+			$('input[name="cr"]',el).val(this.cr);
+			$(".my-cmt-btn",el).append('<span class="badge badge-primary cmt-ru">RU</span>');
+		}			
+		if(this.ce!==null) {			
+			$('input[name="ce"]',el).val(this.ce);
+			$(".my-cmt-btn",el).append('<span class="badge badge-primary cmt-en">EN</span>');
 		}
 		if(locked) {
-			$('.btn,.my-cmt-btn,div.place,div.people,div.comment',el).addClass('locked');
-			
+			$('.btn,.my-cmt-btn,div.place,div.people',el).addClass('locked');
 		}
 		return el.html();
 	}
@@ -309,10 +310,10 @@ function collectDirData(el) {
 					thumb:$("input[name='thumb']",this).val(),
 			};
 			if((''+fileCollected.i)=='0') allInDB = false;
-			if($("input[name='cr']",this).is(":visible")) {
-				fileCollected.cr = $("input[name='cr']",this).val();
-				fileCollected.ce = $("input[name='ce']",this).val();				
-			}
+			var s=$("input[name='cr']",this).val();
+			if(s.length>0) fileCollected.cr=s;
+			s=$("input[name='ce']",this).val();
+			if(s.length>0) fileCollected.ce=s;
 			dirCollected.f.push(fileCollected);
 		});
 
@@ -783,10 +784,15 @@ function savePerson() {
 }
 
 function showComments(el) {
-	var form = $(el).closest("form");
+	modalCaller = $(el).closest('form');
 	var parent = $(el).parent();
-	$(parent).remove();
-	$("div.comment",form).show();
+	var s=$("input[name='cr']",parent).val();
+	$("#cmt-data-ru").val(s);
+	s=$("input[name='ce']",parent).val();
+	$("#cmt-data-en").val(s);	 
+	$("#cmt-edit").modal('show');
+	//$(parent).remove();
+	//$("div.comment",form).show();
 }
 
 function sqlDate(dt) {
@@ -859,6 +865,23 @@ function updateCaller() {
 	}
 	$("#elp").modal('hide');
 	
+}
+
+function updateComment() {
+	var s=$('#cmt-data-ru').val().trim();
+	$("input[name='cr']",modalCaller).val(s);
+	if(s.length==0) $("span.cmt-ru",modalCaller).remove();
+	else if ($("span.cmt-ru",modalCaller).length==0) {
+		$(".my-cmt-btn",modalCaller).append('<span class="badge badge-primary cmt-ru">RU</span>');
+	}
+	s=$('#cmt-data-en').val().trim();
+	$("input[name='ce']",modalCaller).val(s);
+	if(s.length==0) $("span.cmt-en",modalCaller).remove();
+	else if ($("span.cmt-en",modalCaller).length==0) {
+		$(".my-cmt-btn",modalCaller).append('<span class="badge badge-primary cmt-en">EN</span>');
+	}
+	
+	$("#cmt-edit").modal('hide');
 }
 
 $(document).ready(function() {

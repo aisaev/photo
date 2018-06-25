@@ -28,7 +28,7 @@ abstract class AbstractDAO implements IDAO {
     public function delete(DBModel $o): bool { return false; }
     public function findById(array $pk): DBModel {}
     public function getList($listOfPK=null): array { return []; }
-    public function fillFromDB($o,$rec) {
+    public function fillFromDB(&$o,$rec) {
         $len = count($this->map);
         
         for ($i = 0,$j=1; $i < $len; $i++) {

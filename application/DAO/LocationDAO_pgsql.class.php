@@ -107,7 +107,7 @@ class LocationDAO_pgsql extends AbstractDAO_pgsql implements ILocationDAO {
         }
     }
     
-    public function fillFromDB(Location &$o, $rec) {
+    public function fillFromDB(&$o, $rec) {
         parent::fillFromDB($o, $rec);
         $o->allPhotoCnt = $o->photoCnt + $o->childrenPhotoCnt;
         $o->allPrivatePhotoCnt = $o->privatePhotoCnt + $o->childrenPrivatePhotoCnt;
