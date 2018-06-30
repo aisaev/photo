@@ -3,6 +3,8 @@ body {
 	padding-top: 70px;
 }
 li.my-lng img{max-width:24px;}
+button.close{z-index: 999;}
+#largePhoto{vertical-align: top;}
 #largePhoto,#details{display: inline-block;top:0px;position:relative;}
 div.photo {
 	display: inline-block;
