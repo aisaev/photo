@@ -6,7 +6,7 @@ require_once __DIR__.'/../application/ListHelper.class.php';
 <html>
 <head>
 <meta charset="utf-8">
-<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
 <link href="/bootstrap/css/bootstrap.css" rel="stylesheet">
 <link href="/css/common.css" rel="stylesheet">
 <style>

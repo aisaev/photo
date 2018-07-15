@@ -6,7 +6,7 @@ $proc = new PhotosetHelper();
 <html>
 <head>
 <meta charset="UTF-8">
-<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
 <link href="/bootstrap/css/bootstrap.css" rel="stylesheet">
 <link href="/css/common.css" rel="stylesheet">
 <title></title>
