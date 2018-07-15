@@ -79,9 +79,11 @@ class Location extends DBModel implements \JsonSerializable
             if($this->children!=NULL) {
                 $arrayOfChildren=[];
                 foreach ($this->children as $oc) {
-                    $child = $oc->jsonSerialize();
-                    if($oc->sentimental) $child['s'] = 1;
-                    $arrayOfChildren[] = $child;
+                    if($oc->allPhotoCnt > 0) {
+                        $child = $oc->jsonSerialize();
+                        if($oc->sentimental) $child['s'] = 1;
+                        $arrayOfChildren[] = $child;
+                    }
                 }
                 $a['c'] = $arrayOfChildren;
             }

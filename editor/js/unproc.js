@@ -416,6 +416,14 @@ function copyFileToProd(level) {
 
 }
 
+function defaultLoc() {
+	//get place ID from defaults
+	var defaultPlace = $("form.dir-defaults input.placeid",modalCaller.closest("div.dir")).val();
+	if(defaultPlace) {
+		$("#placesel").html(buildPlacesOptions(defaultPlace)).change();
+	}	
+}
+
 function deletePhoto(el) {
 	$(el).closest(".thumbnail").remove();
 }
@@ -484,10 +492,12 @@ function openModal(e,isDir)
 		var eventId = $(".eventid", modalCaller).val(); 
 		$("#eventsel").val(eventId).trigger("change");
 		$("#modal_parent").val(dirNameNow);
+		$("#elp .placesel button.btn").hide();
 	} else {
 		//file data
 		if(currentPlace == '0' && rebuild)
 			currentPlace = $(".placeid",dirEl).val();
+		$("#elp .placesel button.btn").show();
 	}
 	 
 	//if(rebuild || (currentPlace!='0' && currentPlace != $("#current_place").val())) {
