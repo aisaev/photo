@@ -475,6 +475,7 @@ final class ToolsAPI
         $r['pelrd']=[];
         $r['nogeo']=[];
         $r['nodt']=[];
+        $r['nowr']=[];
         while (false !== ($l_f = $l_d->read())) {
             if(preg_match('/jpg/i',$l_f)==0 || is_dir($l_f)) continue;
             $id = intval(substr($l_f, 0,5));
@@ -569,9 +570,10 @@ final class ToolsAPI
                 $exif->setTiff($tiff);
                 $jpeg->setExif($exif);
                 file_put_contents($dst, $jpeg->getBytes());
-            }
+            } else else $r['nowr'][]=$id;
         }
-        
+        sort($r['nodb']);
+        sort($r['nogeo']);
         return $r;
     }
     
