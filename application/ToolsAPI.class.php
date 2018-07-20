@@ -473,17 +473,21 @@ final class ToolsAPI
         $r=[];
         $r['nodb']=[];
         $r['pelrd']=[];
+        $r['nogeo']=[];
+        $r['nodt']=[];
         while (false !== ($l_f = $l_d->read())) {
             if(preg_match('/jpg/i',$l_f)==0 || is_dir($l_f)) continue;
             $id = intval(substr($l_f, 0,5));
+            $dst = '/var/www/photo/photo/full_google/'.$l_f;
+            if(file_exists($dst)) continue;
             if(!isset($a[$id])) {
-                $r['nodb']=$id; //not in DB
+                $r['nodb'][]=$id; //not in DB
                 continue;
             }
             $o=$a[$id];
             $jpeg = new PelJpeg($path.'/'.$l_f);
             if($jpeg==null) {
-                $r['pelrd']=$id;
+                $r['pelrd'][]=$id;
                 continue;
             }
             $exif = $jpeg->getExif();
@@ -548,14 +552,14 @@ final class ToolsAPI
                 $longitude_ref = ($longitude < 0) ? 'W' : 'E';
                 $ifd_gps->addEntry(new PelEntryAscii(PelTag::GPS_LONGITUDE_REF, $longitude_ref));
                 $ifd_gps->addEntry(new PelEntryRational(PelTag::GPS_LONGITUDE, $hours, $minutes, $seconds));
-                $write_me = true;
-            }
+                $write_me = true;                
+            } else $r['nogeo'][]=$id;
             
             if ($o['taken_on']!=null) {
                 $tst = \DateTime::createFromFormat('Y-m-d H:i:s',$o['taken_on']);
                 $ifd_exif->addEntry(new PelEntryTime(PelTag::DATE_TIME_ORIGINAL, $tst->getTimestamp()));
                 $write_me = true;
-            }
+            } else $r['nogeo'][]=$id;
             if($write_me) {
                 $inter_ifd = new PelIfd(PelIfd::INTEROPERABILITY);
                 $ifd->addSubIfd($inter_ifd);
@@ -564,11 +568,11 @@ final class ToolsAPI
                 $tiff->setIfd($ifd);
                 $exif->setTiff($tiff);
                 $jpeg->setExif($exif);
-                file_put_contents('/var/www/photo/photo/full_google/'.$l_f, $jpeg->getBytes());
+                file_put_contents($dst, $jpeg->getBytes());
             }
         }
         
-        return r;
+        return $r;
     }
     
     private function updatePhotosPerLocation() {
