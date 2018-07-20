@@ -462,7 +462,7 @@ final class ToolsAPI
         $id_to = $id_from+999;
         $pdo = DBHelper::getPDO();
         $a = [];
-        $sql = 'SELECT * FROM public.photos WHERE photoid BETWEEN '.$id_from.' AND '.$id_to;
+        $sql = 'SELECT * FROM public.photos WHERE photoid BETWEEN '.$id_from.' AND '.$id_to.' ORDER BY photoid';
         foreach ($pdo->query($sql) as $rec) {
             $a[$rec['photoid']] = array(
                 'taken_on'=>$rec['taken_on'],
