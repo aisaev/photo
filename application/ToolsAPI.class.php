@@ -2,6 +2,13 @@
 namespace photo\edit;
 
 spl_autoload_register(function($name){
+    if (substr_compare($name, 'lsolesen\\pel\\', 0, 13) === 0) {
+        $classname = str_replace('lsolesen\\pel\\', '', $name);
+        $load = realpath('/var/www/pel/src/' . $classname . '.php');
+        if ($load !== false) {
+            include_once realpath($load);
+        }
+    } else {    
     $fn=str_replace('\\', DIRECTORY_SEPARATOR, $name);
     $fn=str_replace('photo/common/', '', $fn);    
     $fn=str_replace('photo/', '', $fn);
@@ -11,17 +18,27 @@ spl_autoload_register(function($name){
     } else {
         return false;
     }
+    }
 });
 
-use photo\common\Config;
 use photo\DAO\EventDAO;
-use photo\DAO\PhotoDAO;
 use photo\DAO\LocationDAO;
 use photo\DAO\PersonDAO;
+use photo\DAO\PhotoDAO;
 use photo\Model\Event;
 use photo\Model\Location;
 use photo\Model\Person;
+use photo\common\Config;
 use photo\common\DBHelper;
+use lsolesen\pel\PelJpeg;
+use lsolesen\pel\PelExif;
+use lsolesen\pel\PelTiff;
+use lsolesen\pel\PelIfd;
+use lsolesen\pel\PelTag;
+use lsolesen\pel\PelEntryAscii;
+use lsolesen\pel\PelEntryRational;
+use lsolesen\pel\PelEntryByte;
+use lsolesen\pel\PelEntryTime;
 
 final class ToolsAPI
 {
@@ -136,6 +153,9 @@ final class ToolsAPI
                 
             case 'upl': //get unprocessed photos
                 return $this->collectPhotos();
+            case 'cp_exif': //set exif for full IMG where
+                if (!isset($_REQUEST['nn'])) throw new \Exception('Missing NN');
+                return $this->updateEXIF();
             default:
                 throw new \Exception('Operation invalid');
         }
@@ -210,6 +230,51 @@ final class ToolsAPI
         $o = new PhotoDir(Config::DIR_UNPROCESSED,'');
         $o->collect();
         return $o;        
+    }
+
+    /**
+     * Convert a decimal degree into degrees, minutes, and seconds.
+     *
+     * @param
+     *            int the degree in the form 123.456. Must be in the interval
+     *            [-180, 180].
+     *
+     * @return array a triple with the degrees, minutes, and seconds. Each
+     *         value is an array itself, suitable for passing to a
+     *         PelEntryRational. If the degree is outside the allowed interval,
+     *         null is returned instead.
+     */
+    function convertDecimalToDMS($degree)
+    {
+        if ($degree > 180 || $degree < - 180) {
+            return null;
+        }
+        $degree = abs($degree); // make sure number is positive
+        // (no distinction here for N/S
+        // or W/E).
+        $seconds = $degree * 3600; // Total number of seconds.
+        $degrees = floor($degree); // Number of whole degrees.
+        $seconds -= $degrees * 3600; // Subtract the number of seconds
+        // taken by the degrees.
+        $minutes = floor($seconds / 60); // Number of whole minutes.
+        $seconds -= $minutes * 60; // Subtract the number of seconds
+        // taken by the minutes.
+        $seconds = round($seconds * 100, 0); // Round seconds with a 1/100th
+        // second precision.
+        return [
+            [
+                $degrees,
+                1
+            ],
+            [
+                $minutes,
+                1
+            ],
+            [
+                $seconds,
+                100
+            ]
+        ];
     }
     
     private function copyImageToProduction() {
@@ -381,6 +446,129 @@ final class ToolsAPI
             $dir_defaults[$dir['d']] = $this->buildDirDefault($dir);
         }
         return $this->oDir->updateFromPOST($dir_defaults);        
+    }
+    
+    private function updateEXIF() { //total hack, since not properly decoupled
+        $nn = $_REQUEST['nn'];
+        $path = Config::DIR_ROOT.'photo/full_google/'.$nn;
+        if(preg_match('/\d\d/', $nn)==0 || !is_dir($path)) {
+            throw new \Exception("Invalid dir ".$path);            
+        }
+        //read files
+        $l_d = dir($path);
+        if($l_d == NULL || $l_d ===FALSE) throw new \Exception("Error with dir ".$path);
+        //pre-read EXIF data from database
+        $id_from = intval($nn)*1000;
+        $id_to = $id_from+999;
+        $pdo = DBHelper::getPDO();
+        $a = [];
+        $sql = 'SELECT * FROM public.photos WHERE photoid BETWEEN '.$id_from.' AND '.$id_to;
+        foreach ($pdo->query($sql) as $rec) {
+            $a[$rec['photoid']] = array(
+                'taken_on'=>$rec['taken_on'],
+                'lat' => $rec['Latitude'],
+                'lng' => $rec['Longitude']
+                );
+        }
+        $r=[];
+        $r['nodb']=[];
+        $r['pelrd']=[];
+        while (false !== ($l_f = $l_d->read())) {
+            if(preg_match('/jpg/i',$l_f)==0 || is_dir($l_f)) continue;
+            $id = intval(substr($l_f, 0,5));
+            if(!isset($a[$id])) {
+                $r['nodb']=$id; //not in DB
+                continue;
+            }
+            $o=$a[$id];
+            $jpeg = new PelJpeg($path.'/'.$l_f);
+            if($jpeg==null) {
+                $r['pelrd']=$id;
+                continue;
+            }
+            $exif = $jpeg->getExif();
+
+            $dto=null;
+            $lat=null;
+            $lng=null;
+            $latr=null;
+            $lngr=null;
+            $ifd_gps==null;
+            $tiff = null;
+            $ifd = null;
+            $ifd_exif = null;
+            
+            if($exif!=null) {
+                $tiff = $exif->getTiff();
+                if ($tiff!=null) {
+                    $ifd = $tiff->getIfd();
+                    if($ifd!=null) {
+                        $ifd_exif = $ifd->getSubIfd(PelIfd::EXIF);
+                        if($ifd_exif!=null) {
+                            $dto=$ifd_exif->getEntry(PelTag::DATE_TIME_ORIGINAL);
+                            if($dto==null) $dto=$ifd_exif->getEntry(PelTag::DATE_TIME);
+                        }
+                        $ifd_gps = $ifd->getSubIfd(PelIfd::GPS);                        
+                        if($ifd_gps!=null) {
+                            $lat=$ifd_gps->getEntry(PelTag::GPS_LATITUDE);
+                            $lng=$ifd_gps->getEntry(PelTag::GPS_LONGITUDE);
+                            $latr=$ifd_gps->getEntry(PelTag::GPS_LATITUDE_REF);
+                            $lngr=$ifd_gps->getEntry(PelTag::GPS_LONGITUDE_REF);
+                        }
+                    }
+                }
+            }
+            if($ifd_exif==null) {
+                $ifd_exif = new PelIfd(PelIfd::EXIF);             
+            }            
+            if($ifd_gps==null) {
+                $ifd_gps = new PelIfd(PelIfd::GPS);
+            }
+            if($ifd==null) {
+                $ifd=new PelIfd(PelIfd::IFD0);
+            }
+            if($tiff==null) {
+                $tiff = new PelTiff();
+            }
+            if($exif==null) {
+                $exif = new PelExif();
+            }
+            $write_me = false;
+            if($o['lat']!=null && $lat==null) {
+                $ifd_gps->addEntry(new PelEntryByte(PelTag::GPS_VERSION_ID, 2, 2, 0, 0));
+                $latitude = $o['lat'];
+                $longitude = $o['lng'];
+                list ($hours, $minutes, $seconds) = $this->convertDecimalToDMS($latitude);
+                /* We interpret a negative latitude as being south. */
+                $latitude_ref = ($latitude < 0) ? 'S' : 'N';
+                $ifd_gps->addEntry(new PelEntryAscii(PelTag::GPS_LATITUDE_REF, $latitude_ref));
+                $ifd_gps->addEntry(new PelEntryRational(PelTag::GPS_LATITUDE, $hours, $minutes, $seconds));
+                /* The longitude works like the latitude. */
+                list ($hours, $minutes, $seconds) = $this->convertDecimalToDMS($longitude);
+                $longitude_ref = ($longitude < 0) ? 'W' : 'E';
+                $ifd_gps->addEntry(new PelEntryAscii(PelTag::GPS_LONGITUDE_REF, $longitude_ref));
+                $ifd_gps->addEntry(new PelEntryRational(PelTag::GPS_LONGITUDE, $hours, $minutes, $seconds));
+                $write_me = true;
+            }
+            
+            if ($o['taken_on']!=null) {
+                $tst = \DateTime::createFromFormat('Y-m-d H:i:s',$o['taken_on']);
+                $ifd_exif->addEntry(new PelEntryTime(PelTag::DATE_TIME_ORIGINAL, $tst->getTimestamp()));
+                $write_me = true;
+            }
+            if($write_me) {
+                $inter_ifd = new PelIfd(PelIfd::INTEROPERABILITY);
+                $ifd->addSubIfd($inter_ifd);
+                $ifd->addSubIfd($ifd_exif);
+                $ifd->addSubIfd($ifd_gps);
+                $tiff->setIfd($ifd);
+                $exif->setTiff($tiff);
+                $jpeg->setExif($exif);
+                file_put_contents('/var/www/photo/photo/full_google/'.$l_f, $jpeg->getBytes());
+            }
+        }
+        
+        return r;
     }
     
     private function updatePhotosPerLocation() {
