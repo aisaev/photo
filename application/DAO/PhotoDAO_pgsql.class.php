@@ -46,7 +46,7 @@ class PhotoDAO_pgsql extends AbstractDAO_pgsql implements IPhotoDAO {
         $sql = 'SELECT * FROM '.$this->tablename.' ORDER BY '.$this->db_keys[0];
         foreach ($pdo->query($sql) as $rec) {
             $o = new Photo();
-            $o->fillFromDB($rec);
+            $this->fillFromDB($o, $rec);
             $a[] = $o;
         }
         return $a;

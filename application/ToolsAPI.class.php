@@ -53,7 +53,7 @@ final class ToolsAPI
         switch ($_GET['op']) {
             case 'ap':
                 // audit photos
-                //return $this->auditPhotos();
+                return $this->auditPhotos();
             
             case 'cpf':
                 //copy single image file to production. ID is known
@@ -164,32 +164,26 @@ final class ToolsAPI
     private function auditPhotos() {
         // get all photo IDs from DB that have event assignment
         $a = [];
+        $a['nodb']=[];
+        $a['nof']=[];
+        $a['hf']=[];
         $pFiles = $this->prepareListOfPics();
         $pDB = PhotoDAO::getInstance()->getList();
         foreach ($pDB as $o) {
             $fn=$o->getFileName();
             if($o->hide) {
                 if(isset($pFiles[$fn])) {
-                    $a[$o->id]=1; //file for hidden rec exists
+                    $a['hf'][]=$o;
                     unset($pFiles[$fn]);
                 }
             } else {
                 if(!isset($pFiles[$fn])) {
-                    //no file for good DB rec, try to get
-                    try {
-                        $jpegContent = file_get_contents('http://192.168.2.5/pics/'.substr($fn,0,2).'/'.$fn);
-                        if($jpegContent===false) {
-                            $a[$o->id]=2;
-                        } else {
-                            if(file_put_contents(Config::DIR_PICSFULL.substr($fn,0,2).'/'.$fn, $jpegContent)===false) {
-                                $a[$o->id]=4;
-                            } else {
-                                $a[$o->id]=0;
-                            }
-                        }
-                    } catch (\Exception $e) {
-                        $a[$o->id]=5;
-                    }
+                    //check if maybe pics exist
+                    $pfx=substr($fn, 0,2);
+                    $fn_pics='/var/www/photo/photo/pics/'.$pfx.'/'.$fn;
+                    if(file_exists($fn_pics)) {
+                        copy($fn_pics,'/var/www/photo/photo/full/'.$pfx.'/'.$fn);
+                    } else $a['nof'][]=$o;
                     
                 } else {
                     unset($pFiles[$fn]);
@@ -197,10 +191,14 @@ final class ToolsAPI
             }
         }
         foreach ($pFiles as $fn=>$v) {
-            $a[$fn]=3;
-        }  
-        return $a;
+            $a['nodb'][]=intval(substr($fn, 0,5));
+        }
         
+        sort($a['nodb']);
+        sort($a['nof']);
+        sort($a['hf']);
+        return $a;
+                
         // read all photo IDs from files in picsfull
         // match DB to file
     }

@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+<link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+<style>
+.tmb{display:inline-block;margin-bottom: 3px;margin-right: 3px;}
+.tmb img{max-height:300px;}
+</style>
+<title>Audit</title>
+<script src="js/jquery.js"></script>
+<script src="js/cookies.js"></script>
+<script src="bootstrap/js/bootstrap.js"></script>
+<script src="js/config.js"></script>
+<script src="api.php?v=audit&op=ap"></script>
+<script src="api.php?v=events&op=el"></script>
+<script src="api.php?v=places&op=ll"></script>
+<script src="js/audit.js"></script>
+</head>
+<body class="container" style="width:90%;">
+<h1>File exists, but no DB record for it:</h1><div id="nodb"></div>
+<h1>DB record exists, but no file:</h1>
+<table class="table">
+	<thead><tr><th>ID</th><th>Event</th><th>Taken on</th><th>Comment</th></tr></thead>
+	<tbody id="nof"></tbody>
+</table>
+<h1>DB record should be hidden, but file still exists for it</h1><div id="hf"></div>
+</body>
+</html>
