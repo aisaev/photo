@@ -570,7 +570,7 @@ final class ToolsAPI
                 $exif->setTiff($tiff);
                 $jpeg->setExif($exif);
                 file_put_contents($dst, $jpeg->getBytes());
-            } else else $r['nowr'][]=$id;
+            } else $r['nowr'][]=$id;
         }
         sort($r['nodb']);
         sort($r['nogeo']);
