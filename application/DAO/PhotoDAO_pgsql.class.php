@@ -75,7 +75,8 @@ class PhotoDAO_pgsql extends AbstractDAO_pgsql implements IPhotoDAO {
             if($evt->date_from==$evt->date_to && $o->taken_on==$evt->date_from) $o->taken_on = null;
             if(isset($p2p[$rec['photoid']])) $o->people=$p2p[$rec['photoid']];
             else $o->people = null;
-            $a[] = $o;
+            if(!$o->hide)
+                $a[] = $o;
         }
         return $a;
     }
@@ -105,7 +106,8 @@ class PhotoDAO_pgsql extends AbstractDAO_pgsql implements IPhotoDAO {
             $this->fillFromDB($o, $rec);
             if(isset($p2p[$rec['photoid']])) $o->people=$p2p[$rec['photoid']];
             else $o->people = null;
-            $a[] = $o;
+            if(!$o->hide)
+                $a[] = $o;
         }
         return $a;
     }
@@ -139,7 +141,8 @@ class PhotoDAO_pgsql extends AbstractDAO_pgsql implements IPhotoDAO {
             $this->fillFromDB($o, $rec);
             if(isset($p2p[$rec['photoid']])) $o->people=$p2p[$rec['photoid']];
             else $o->people = null;
-            $a[] = $o;
+            if(!$o->hide)
+                $a[] = $o;
         }
         //ORDER BY taken_on DESC, event DESC, seqnum DESC, photoid DESC
         return $a;

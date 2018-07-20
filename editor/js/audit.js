@@ -21,7 +21,8 @@ $(function(){
 	
 	s='';
 	for(var i=0;i<audit.r.hf.length;i++) {
-		s+=getIMG(audit.r.hf[i].i);
+		var o = audit.r.hf[i]
+		s+=getIMG(o.i,o);
 	} 
 	$("#hf").html(s);
 	
@@ -32,10 +33,10 @@ $(function(){
 	$("#nof").html(s);
 });
 
-function getIMG(id) {
+function getIMG(id,o=null) {
 	var fn=(''+(100000+id)).substring(1,6);
 	var pfx=fn.substring(0,2);
-	return '<div class="tmb"><img src="full/'+pfx+'/'+fn+'.jpg" title="'+id+'"></div>';
+	return '<div class="tmb"><img src="full/'+pfx+'/'+fn+'.jpg" title="'+id+'">'+(o==null?'':'<div>Event: '+o.e+'</div>')+'</div>';
 	
 }
 function getInfo(o) {
