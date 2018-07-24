@@ -95,6 +95,11 @@ class Location extends DBModel implements \JsonSerializable
         if($this->id!=0 && $this->id == $this->parent) {
             throw new \Exception('Location parent is the same as location ID');
         }
+        //decode HTML to string
+        html_entity_decode($this->descr_r);
+        html_entity_decode($this->descr_e);
+        if($this->comment_e!=null) html_entity_decode($this->comment_e);
+        if($this->comment_r!=null) html_entity_decode($this->comment_r);
     }
 }
 ?>

@@ -42,6 +42,7 @@ function prepPlaceData() {
 	 	var o = places.r[i];
 	 	if(o.cr) {} else {o.cr='';}
 	 	if(o.ce) {} else {o.ce='';}
+	 	
 	 	o.text = (o.dr+(o.dr==o.de?'':" | "+o.de));
 	 	placeById[o.id] = o;
 	 	if(typeof placeTree[o.p] === 'undefined') placeTree[o.p] = [];
