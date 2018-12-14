@@ -26,10 +26,12 @@ echo $proc->get_data_file_name();
 </head>
 <body>
 <?php include 'common_top.html'; ?>
+<div class="container" style="min-width: 100%;padding-left: 1em;padding-right: 1em;">
 	<h1></h1>
 	<div id="root">
 	</div>
-
+</div>
+		
 <div class="modal fade" id="photoDetails" tabindex="-1" role="dialog" aria-labelledby="detLbl" aria-hidden="true" style="width:100%;">
 	<div class="modal-dialog" role="document" style="min-width:100%;min-height:100%;">
 		<div class="modal-content">
