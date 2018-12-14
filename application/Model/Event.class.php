@@ -11,6 +11,7 @@ final class Event extends DBModel implements \JsonSerializable
     public $desc_e = NULL;
     public $hide = false;
     public $sentimental = false;
+    public $added_on = NULL;
     
     public function checkVar($n, &$v)
     {
@@ -48,6 +49,14 @@ final class Event extends DBModel implements \JsonSerializable
         } else {
             if(Config::$lng==Config::LNG_RU) $a['d'] = $this->desc_r;
             else $a['d'] = $this->desc_e;
+            
+            if ($this->added_on <> null) {
+                $dtNow = new \DateTime("now");
+                $dtDiff = $dtNow->diff($this->added_on);
+                if ($dtDiff->days < 15) {
+                    $a['n'] = '1';                    
+                }
+            }
         }
         if($this->sentimental) $a['s'] = 1;
         return $a;

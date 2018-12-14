@@ -41,14 +41,14 @@ $(document).ready(function() {
 	//locations: render subnodes
 	if(app == APP_PLACE) { 
 		if(o.id>0) {
-			sLoc+='<ol class="breadcrumb">';
+			sLoc+='<nav aria-label="breadcrumb"><ol class="breadcrumb">';
 			for(var pid=o.parent; pid>=0;) {
 				var op=ll_idx[pid];
-				sLoc+='<li><a href="/place/'+op.id+'">'+op.descr+'</a></li>';
+				sLoc+='<li class="breadcrumb-item"><a href="/place/'+op.id+'">'+op.descr+'</a></li>';
 				pid = op.parent;
 				if(op.id==0) break;
 			}			
-			sLoc+='</ol>';
+			sLoc+='</ol><nav>';
 		}
 		if(o.children) {
 			o.children.sort(function(a,b){

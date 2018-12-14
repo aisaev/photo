@@ -163,11 +163,12 @@ final class ToolsAPI
     
     private function auditPhotos() {
         // get all photo IDs from DB that have event assignment
+        //file existence bitmap: 1 = RAW, 2 = FULL, 4 = PICS, 8 = TMB
         $a = [];
         $a['nodb']=[];
         $a['nof']=[];
         $a['hf']=[];
-        $pFiles = $this->prepareListOfPics();
+        $pFiles = $this->prepareListOfPics(Config::DIR_PICSFULL);
         $pDB = PhotoDAO::getInstance()->getList();
         foreach ($pDB as $o) {
             $fn=$o->getFileName();
@@ -179,12 +180,7 @@ final class ToolsAPI
             } else {
                 if(!isset($pFiles[$fn])) {
                     //check if maybe pics exist
-                    $pfx=substr($fn, 0,2);
-                    $fn_pics='/var/www/photo/photo/pics/'.$pfx.'/'.$fn;
-                    if(file_exists($fn_pics)) {
-                        copy($fn_pics,'/var/www/photo/photo/full/'.$pfx.'/'.$fn);
-                    } else $a['nof'][]=$o;
-                    
+                    $a['nof'][]=$o;                    
                 } else {
                     unset($pFiles[$fn]);
                 }
@@ -323,15 +319,15 @@ final class ToolsAPI
         
     }
     
-    private function prepareListOfPics()
+    private function prepareListOfPics($dir_root)
     {
-        $dirNN = dir(Config::DIR_PICSFULL);
+        $dirNN = dir($dir_root);
         $a = [];
         while (false !== ($l_d = $dirNN->read())) {
-            if ($l_d == '.' || $l_d == '..' || ! is_dir(Config::DIR_PICSFULL . $l_d)) {
+            if ($l_d == '.' || $l_d == '..' || ! is_dir($dir_root . $l_d)) {
                 continue;
             }
-            $dNN=Config::DIR_PICSFULL . $l_d.'/';
+            $dNN=$dir_root . $l_d.'/';
             $files = dir($dNN);
             while (false !== ($l_f = $files->read())) {
                 // only consider .jpg files

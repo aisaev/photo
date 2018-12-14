@@ -19,7 +19,8 @@ class EventDAO_pgsql extends AbstractDAO_pgsql implements IDAOEvent {
             ['hide','hide','h',FILTER_SANITIZE_STRING],
             ['sent','sentimental','s',FILTER_SANITIZE_STRING],
             ['event','desc_r','r',null],
-            ['evente','desc_e','e',null]
+            ['evente','desc_e','e',null],
+            ['addon','added_on','a',null]
         ];
         $this->init();        
     }
@@ -35,6 +36,7 @@ class EventDAO_pgsql extends AbstractDAO_pgsql implements IDAOEvent {
             foreach ($pdo->query($sql) as $rec) {
                 $o = new Event();
                 $this->fillFromDB($o, $rec);
+                if($o->added_on != NULL) $o->added_on = new \DateTime($o->added_on);
                 $a[] = $o;
             }
         }

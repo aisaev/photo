@@ -15,9 +15,9 @@ $(document).ready(function() {
 				yr_last=oe.yr;
 				html+='<tr><td class="new-year" colspan="3"><div onclick="toggleYr('+
 						(oe.yr=='Pinned'?"'Pinned'":oe.yr)+',this);return false;">'+
-						(oe.yr=='Pinned'?'<span class="glyphicon glyphicon-pushpin"></span>':oe.yr)+
-						' <span class="glyphicon glyphicon-chevron-'+
-						(tr.hasClass('recent')?'down':'right')+'"></div></td></tr>';
+						oe.yr+
+						' <i class="fas fa-chevron-'+
+						(tr.hasClass('recent')?'down':'right')+'"></i></div></td></tr>';
 			}
 			html+=tr[0].outerHTML;
 		}
@@ -34,18 +34,19 @@ function toTR(o,yr_curr) {
 	var is_recent = o.yr=='Pinned'||o.yr>=(yr_curr-1);
 	var tr=$('<tr class="yr'+o.yr+' collapse'+(is_recent?' recent':'')+
 			'"><td><a href="/event/'+o.id+'">'+
-			(o.date_from=='Pinned'?'<span class="glyphicon glyphicon-pushpin"></span>':o.readableDates())+
+			(o.date_from=='Pinned'?'<i class="fas fa-thumbtack"></i>':o.readableDates())+
 			'</a></td><td class="d"></td></tr>');
 	$("td.d",tr).text(lng==LNG_RU?o.desc_r:o.desc_e);
+	if(o.is_new) $("td.d",tr).append(' <span class="badge badge-pill badge-warning">New</span>');
 	return tr;
 }
 
 function toggleYr(year,el) {
-	var span=$('span.glyphicon',el);
+	var span=$('i.fas',el);
 	$('tr.yr'+year).collapse('toggle');
-	if(span.hasClass('glyphicon-chevron-right')) {
-		span.removeClass('glyphicon-chevron-right').addClass('glyphicon-chevron-down');
+	if(span.hasClass('fa-chevron-right')) {
+		span.removeClass('fa-chevron-right').addClass('fa-chevron-down');
 	} else {
-		span.removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-right');
+		span.removeClass('fa-chevron-down').addClass('fa-chevron-right');
 	}
 }

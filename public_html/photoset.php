@@ -7,11 +7,14 @@ $proc = new PhotosetHelper();
 <head>
 <meta charset="UTF-8">
 <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
-<link href="/bootstrap/css/bootstrap.css" rel="stylesheet">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+<!-- link href="/bootstrap/css/bootstrap.css" rel="stylesheet" -->
 <link href="/css/common.css" rel="stylesheet">
 <title></title>
 <script src="/js/jquery.js"></script>
-<script src="/bootstrap/js/bootstrap.js"></script>
+<!-- script src="/bootstrap/js/bootstrap.js"></script --> 
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 <script src="/js/jquery.lazy-master/jquery.lazy.min.js"></script>
 <script src="/js/jquery.lazy-master/jquery.lazy.plugins.min.js"></script>
 <script src="/js/config.js"></script>
@@ -22,26 +25,24 @@ echo $proc->get_data_file_name();
 <script src="/js/photoset.js"></script>
 </head>
 <body>
-<div class="container" style='width: 100%;padding-left:10px;padding-right:5px;'>
-<nav id="common-nav" class="navbar navbar-default navbar-fixed-top">
 <?php include 'common_top.html'; ?>
-</nav>
 	<h1></h1>
 	<div id="root">
 	</div>
-</div>	
-<div class="modal" id="photoDetails" tabindex="-1" role="dialog" aria-labelledby="detLbl" style="width:100%;">
-	<div class="modal-dialog" role="document" style="width:100%;height:100%;">
+
+<div class="modal fade" id="photoDetails" tabindex="-1" role="dialog" aria-labelledby="detLbl" aria-hidden="true" style="width:100%;">
+	<div class="modal-dialog" role="document" style="min-width:100%;min-height:100%;">
 		<div class="modal-content">
-			<div class="modal-body">
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position:absolute; top:5px; right: 5px; font-size: 3em;color: white;"><span class="glyphicon glyphicon-remove-circle"></span></button>
+			<div class="modal-body" style="position: relative;">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position:absolute; top:5px; right: 5px; font-size: 3em;color: white;">
+					<i class="fas fa-times-circle"></i></button>
 				<div class="content-center">
     				<div id="largePhoto">
     					<a class="carousel-control left" role="button"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span></a>
     					<a class='img'><img src=""></a>
     					<a class="carousel-control right" role="button"><span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></a>
     				</div>
-    				<div id="details" style="min-width: 30%;margin-top: 10px;">
+    				<div id="details" style="min-width: 30%;margin-top: 1em;margin-left:2em;">
     					<input id="photoid" type="hidden">
         				<dl class="dl-horizontal">
         					<dt class="evt">Event:</dt><dd class="evt"></dd>

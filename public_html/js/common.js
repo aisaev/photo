@@ -56,6 +56,7 @@ class Photo {
 class Event {
 	
 	constructor(json) {
+		this.is_new = false;
 		if (json) {
 			var yr_curr=(new Date()).getFullYear();
 			this.id = json['i'];
@@ -75,6 +76,7 @@ class Event {
 				if(json['r']) this.desc_r = json['r'];
 				this.desc_e = json['e']?json['e']:this.desc_r;
 			}
+			if(json['n']) this.is_new = true;
 		} else {
 			this.id=0;
 			this.date_from="";
@@ -221,10 +223,10 @@ function setNavOptions() {
 	$('.my-opt-sel').text(localize[lng]['opt']);
 	
 	//sentimental
-	$('.my-opt-snt a').html((showSentimental?'<span class="glyphicon glyphicon-ok"></span> ':'')+localize[lng]['snt']);
+	$('.my-opt-snt a').html((showSentimental?'<i class="fas fa-check"></i> ':'')+localize[lng]['snt']);
 	
 	//full thumbs
-	$('.my-opt-fth a').html((fullThumbnails?'<span class="glyphicon glyphicon-ok"></span> ':'')+localize[lng]['fth']);
+	$('.my-opt-fth a').html((fullThumbnails?'<i class="fas fa-check"></i> ':'')+localize[lng]['fth']);
 }
 
 function initPhotoDetails()

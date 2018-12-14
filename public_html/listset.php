@@ -7,14 +7,17 @@ require_once __DIR__.'/../application/ListHelper.class.php';
 <head>
 <meta charset="utf-8">
 <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
-<link href="/bootstrap/css/bootstrap.css" rel="stylesheet">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+<!-- link href="/bootstrap/css/bootstrap.css" rel="stylesheet" -->
 <link href="/css/common.css" rel="stylesheet">
 <style>
 .new-year{background-color: #99ccff;cursor: pointer;}
 </style>
 <title></title>
 <script src="/js/jquery.js"></script>
-<script src="/bootstrap/js/bootstrap.js"></script>
+<!-- script src="/bootstrap/js/bootstrap.js"></script --> 
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 <script src="/js/config.js"></script>
 <script src="/js/common.js"></script>
 <?php
@@ -29,8 +32,8 @@ if(!isset($_GET['op'])) {
 ?>
 </head>
 <body>
+<?php include 'common_top.html'; ?>
 <div class="container">
-	<nav id="common-nav" class="navbar navbar-default navbar-fixed-top"><?php include 'common_top.html'; ?></nav>
 <table id="alist" class="table table-striped" style="width: auto; margin: auto;">
 <tbody>
 </tbody>
