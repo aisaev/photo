@@ -112,8 +112,9 @@ class Event {
 				return df[2]+' '+readableMonth[lng][df[1]]+' - '+
 					dt[2]+' '+readableMonth[lng][dt[1]]+' '+s;
 			}
+		} else {
+			return df[2]+' '+readableMonth[lng][df[1]]+' '+df[0]+' - '+dt[2]+' '+readableMonth[lng][dt[1]]+' '+dt[0];
 		}
-		return this.date_from+' - '+this.date_to;
 	}
 }
 

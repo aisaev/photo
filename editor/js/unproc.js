@@ -660,9 +660,9 @@ function renderEventsSelector(parent) {
  		} else {
  			o.dt = [o.t.substr(0,4),o.t.substr(5,2),o.t.substr(8,2)];
  			if(o.dt[0]!=o.df[0]) {
- 				dr='-'+o.dt.replace(/\-/g,'.');
+ 				dr+='-'+o.t.replace(/\-/g,'.');
  			} else if(o.dt[1]!=o.df[1]) {
- 				dr = dr+'-'+o.t.substr(5).replace(/\-/g,'.');
+ 				dr+='-'+o.t.substr(5).replace(/\-/g,'.');
  			} else if(o.dt[2]!=o.df[2]) {
  				dr+='-'+o.dt[2];
  			}
