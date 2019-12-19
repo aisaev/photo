@@ -7,7 +7,6 @@ interface IDAO {
     function update(DBModel $o): bool;
     function delete(DBModel $o): bool;
     function save(DBModel &$o): bool;
-    function findById(array $pk): DBModel;
     function getList($listOfPK=null): array;
     function initFromPOST($entry, DBModel &$o);
 }

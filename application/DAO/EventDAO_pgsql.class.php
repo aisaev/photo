@@ -43,7 +43,7 @@ class EventDAO_pgsql extends AbstractDAO_pgsql implements IDAOEvent {
         return $a;
     }
     
-    public function findById(array $pk): DBModel {
+    public function findById(array $pk): Event {
         $sql = 'SELECT * FROM '.$this->tablename.' WHERE '.$this->db_keys[0].' = ?';
         $pdo = DBHelper::getPDO();
         $sth = $pdo->prepare($sql);

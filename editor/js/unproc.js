@@ -883,12 +883,14 @@ function updateComment() {
 	if(s.length==0) $("span.cmt-ru",modalCaller).remove();
 	else if ($("span.cmt-ru",modalCaller).length==0) {
 		$(".my-cmt-btn",modalCaller).append('<span class="badge badge-primary cmt-ru">RU</span>');
+		$("span.cmt-ru",modalCaller).prop("title",s)
 	}
 	s=$('#cmt-data-en').val().trim();
 	$("input[name='ce']",modalCaller).val(s);
 	if(s.length==0) $("span.cmt-en",modalCaller).remove();
 	else if ($("span.cmt-en",modalCaller).length==0) {
 		$(".my-cmt-btn",modalCaller).append('<span class="badge badge-primary cmt-en">EN</span>');
+		$("span.cmt-en",modalCaller).prop("title",s)
 	}
 	
 	$("#cmt-edit").modal('hide');

@@ -1,9 +1,9 @@
 <?php
 namespace photo\Controller;
 
-use photo\DAO\AbstractDAO;
 use photo\DAO\EventDAO;
 use photo\Model\Event;
+use photo\DAO\AbstractDAO;
 
 final class EventController extends AbstractDAO {
     public static function getInstance()

@@ -7,6 +7,7 @@ use photo\Model\Photo;
 use \Exception;
 use photo\common\DBHelper;
 use photo\DAO\EventDAO;
+use photo\Model\Event;
 
 final class PhotoDir implements \JsonSerializable {
     const FN_LOCK = '.dir_lock';
@@ -116,17 +117,23 @@ final class PhotoDir implements \JsonSerializable {
 	}
 	
 	public function saveDB():array {
+	    $oFile = new PhotoFile();
+	    
 	    $this->validate();
 	    $is_first = TRUE;
 	    $cur_path = $this->parent_dir.$this->dir;
 	    try {
 	        $event_dao = EventDAO::getInstance();
+	        $oEvent = $event_dao->findById($this->defaults->event);
 	        $minseq = $event_dao->getMinSeqNum($this->defaults->event);
 	        foreach ($this->files as $oFile) {
 	            if($is_first) {
 	                $pdo = DBHelper::getPDO();
 	                if($pdo->beginTransaction()==FALSE) throw new Exception("Failed to start transaction");
-	                $is_first = false;
+	                $is_first = false;	                
+	                //update mod on attribute on event to make sure event is tagged as having new photos
+	                $oEvent->added_on = new \DateTime();
+	                $event_dao->update($oEvent);
 	            }
 	            $oFile->seq+=$minseq;
 	            $oFile->saveDB($this->defaults);
