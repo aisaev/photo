@@ -877,7 +877,7 @@ function updateCaller() {
 	
 }
 
-function updateComment() {
+function updateComment() {  
 	var s=$('#cmt-data-ru').val().trim();
 	$("input[name='cr']",modalCaller).val(s);
 	if(s.length==0) $("span.cmt-ru",modalCaller).remove();

@@ -2,7 +2,7 @@
 namespace photo\DAO;
 
 use photo\Model\DBModel;
-
+ 
 abstract class AbstractDAO implements IDAO {
     const MAX_CNT = 100;
     protected $tablename = null;

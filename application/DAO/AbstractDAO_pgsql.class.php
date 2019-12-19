@@ -4,7 +4,7 @@ namespace photo\DAO;
 use photo\Model\DBModel;
 use photo\common\DBHelper;
 use photo\common\ErrorHandler;
-
+ 
 abstract class AbstractDAO_pgsql extends AbstractDAO {
     
     public function create(DBModel &$o): bool

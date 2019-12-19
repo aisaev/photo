@@ -7,7 +7,6 @@ use photo\Model\Photo;
 use \Exception;
 use photo\common\DBHelper;
 use photo\DAO\EventDAO;
-use photo\Model\Event;
 
 final class PhotoDir implements \JsonSerializable {
     const FN_LOCK = '.dir_lock';

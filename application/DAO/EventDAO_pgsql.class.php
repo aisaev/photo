@@ -1,11 +1,10 @@
 <?php
 namespace photo\DAO;
 
-use photo\Model\DBModel;
 use photo\Model\Event;
 use photo\common\DBHelper;
 
-class EventDAO_pgsql extends AbstractDAO_pgsql implements IDAOEvent {
+class EventDAO_pgsql extends AbstractDAO_pgsql implements IDAOEvent { 
     
     function __construct() {
         $this->tablename = 'public.events';
@@ -43,7 +42,7 @@ class EventDAO_pgsql extends AbstractDAO_pgsql implements IDAOEvent {
         return $a;
     }
     
-    public function findById(array $pk): Event {
+    public function findById(array $pk): Event { 
         $sql = 'SELECT * FROM '.$this->tablename.' WHERE '.$this->db_keys[0].' = ?';
         $pdo = DBHelper::getPDO();
         $sth = $pdo->prepare($sql);
