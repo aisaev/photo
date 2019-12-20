@@ -121,6 +121,7 @@ final class PhotoDir implements \JsonSerializable {
 	    $this->validate();
 	    $is_first = TRUE;
 	    $cur_path = $this->parent_dir.$this->dir;
+	    $ts = new \DateTime();
 	    try {
 	        $event_dao = EventDAO::getInstance();
 	        $oEvent = $event_dao->findById([$this->defaults->event]);
@@ -131,7 +132,8 @@ final class PhotoDir implements \JsonSerializable {
 	                if($pdo->beginTransaction()==FALSE) throw new Exception("Failed to start transaction");
 	                $is_first = false;	                
 	                //update mod on attribute on event to make sure event is tagged as having new photos
-	                $oEvent->added_on = new \DateTime();
+	                $oEvent->added_on = $ts->format("Y-m-d");
+	                $oEvent->updfld['added_on']=true;
 	                $event_dao->update($oEvent);
 	            }
 	            $oFile->seq+=$minseq;
