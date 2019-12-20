@@ -123,7 +123,7 @@ final class PhotoDir implements \JsonSerializable {
 	    $cur_path = $this->parent_dir.$this->dir;
 	    try {
 	        $event_dao = EventDAO::getInstance();
-	        $oEvent = $event_dao->findById($this->defaults->event);
+	        $oEvent = $event_dao->findById([$this->defaults->event]);
 	        $minseq = $event_dao->getMinSeqNum($this->defaults->event);
 	        foreach ($this->files as $oFile) {
 	            if($is_first) {
