@@ -20,7 +20,7 @@ var reloadOnFTH=true;
 var isMobile=(navigator.userAgent.match(/(mobile|android)/i)!==null);//(typeof window.orientation!=='undefined');
 var mode=1; //1=photoset,0=edit
 var app=APP_EVENT;
-
+var inNav=false; //in navigation mode
 class Photo {
 	constructor(json)
 	{
@@ -42,7 +42,7 @@ class Photo {
 	}
 	
 	htmlThumbnail() {
-		var html='<div class="thumb photo"><a class="pic-det lazy-loading" href="#'+this.id+'" onclick="showDetails('+this.id+');"><img class="lazy" data-src="/tmb/'+
+		var html='<div class="thumb photo"><a class="pic-det lazy-loading" href="#'+this.id+'"><img class="lazy" data-src="/tmb/'+
 			this.dir_name+'/'+this.file_name+'.jpg"';
 		return html+'style="max-height:'+(fullThumbnails?480:320)+'px;"></div>';
 	}
@@ -398,9 +398,21 @@ function buildPplList(a) {
 	return html+'</ul>'
 }
 
+function switchPhoto(id) {
+	inNav=true;
+	var url = location.href;
+	if(url.indexOf('#')>0) {
+		url=url.substring(0,url.indexOf('#'));
+	}
+	url=url+'#'+id;
+	location.replace("#"+id);
+	inNav=false;
+}
+
 function showDetails(id) {
 	if($("#photoDetails").is(":visible")) {
-		hideDetails();
+		//$("#photoDetails").hide();
+		//hideDetails();
 	}
 	$("#photoid").val(id);
 	var op=pl_idx[id];
@@ -414,13 +426,15 @@ function showDetails(id) {
 			//1st photo, hide left arrow
 			$("#largePhoto .carousel-control.left").hide();
 		} else {
-			$("#largePhoto .carousel-control.left").show().attr("onclick","showDetails("+photos[op.idx-1].i+")");
+			//$("#largePhoto .carousel-control.left").show().attr("onclick","showDetails("+photos[op.idx-1].i+")");
+			$("#largePhoto .carousel-control.left").show().attr("onclick","switchPhoto("+photos[op.idx-1].i+")");
 		}
 		if(op.idx>=(photos.length-1)) {
 			//last photo, hide right arrow
 			$("#largePhoto .carousel-control.right").hide();
 		} else {
-			$("#largePhoto .carousel-control.right").show().attr("onclick","showDetails("+photos[op.idx+1].i+")");
+			//$("#largePhoto .carousel-control.right").show().attr("onclick","showDetails("+photos[op.idx+1].i+")");
+			$("#largePhoto .carousel-control.right").show().attr("onclick","switchPhoto("+photos[op.idx+1].i+")");
 		}
 	}
 	var evtDescr=el_idx[op.event].nameToShow();
@@ -536,11 +550,13 @@ function linkify(inputText) {
 function photoCarousel(direction) {
 	switch(direction) {
 	case 'left': case 'right':
+		inNav=true;
 		var ctl_name="#largePhoto .carousel-control."+direction;
 		var ctl = $(ctl_name);
 		if(ctl.is(":visible")) {
 			eval(ctl.attr("onclick")+';');
 		}	
+		inNav=false;
 	}
 }
 

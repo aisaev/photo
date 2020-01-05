@@ -8,8 +8,7 @@ $proc = new PhotosetHelper();
 <meta charset="UTF-8">
 <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
-<!-- link href="/bootstrap/css/bootstrap.css" rel="stylesheet" -->
+<link href="/fa/css/all.css" rel="stylesheet"> <!--load all styles -->
 <link href="/css/common.css" rel="stylesheet">
 <title></title>
 <script src="/js/jquery.js"></script>
@@ -40,9 +39,9 @@ echo $proc->get_data_file_name();
 					<i class="fas fa-times-circle"></i></button>
 				<div class="content-center">
     				<div id="largePhoto">
-    					<a class="carousel-control left" role="button"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span></a>
+    					<a class="carousel-control left" role="button"><i class="fas fa-chevron-left" aria-hidden="true"></i></a>
     					<a class='img'><img src=""></a>
-    					<a class="carousel-control right" role="button"><span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></a>
+    					<a class="carousel-control right" role="button"><i class="fas fa-chevron-right" aria-hidden="true"></i></a>
     				</div>
     				<div id="details" style="min-width: 30%;margin-top: 1em;margin-left:2em;">
     					<input id="photoid" type="hidden">

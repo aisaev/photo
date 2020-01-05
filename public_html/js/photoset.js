@@ -101,10 +101,24 @@ $(document).ready(function() {
 		default:
 			return false;
 		}
+	})
+	.on("hide.bs.modal",function(){
+		if(!inNav&&window.location.href.indexOf('#')>0) {
+			history.back();
+		}
 	});
 	
 	swipedetect($("#largePhoto")[0],function(direction){
 		if(direction!='left'&&direction!='right') return false;
 		photoCarousel(direction=='left'?'right':'left');		
 	});
+	
+	$(window).on('popstate',function(event){
+		if(window.location.href.indexOf('#')<0) {
+			if ($("#photoDetails").is(":visible"))
+				hideDetails();
+		} else
+				showDetails(window.location.href.substring(window.location.href.indexOf('#')+1));			
+	});
+	if(location.href.indexOf('#')>=0) showDetails(window.location.href.substring(window.location.href.indexOf('#')+1));
 });
