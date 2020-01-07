@@ -10,7 +10,7 @@ class PhotoFile {
 			this.id = json['i']?parseInt(json['i']):0;
 			this.cr=(json['cr']?json['cr']:null);
 			this.ce=(json['ce']?json['ce']:null);
-			this.lumix=/^P\d/.test(this.fn);
+			this.lumix=/^P\d/.test(this.fn)||/^DSC\d/.test(this.fn);
 			this.thumb=json['th'];
 		}
 	}
