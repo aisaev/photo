@@ -1,3 +1,7 @@
+function isLumix(fn) {
+	return /^P\d/.test(fn)||/^DSC\d/.test(fn);
+}
+
 class PhotoFile {
 	constructor(json) {
 		if (json) {
@@ -10,7 +14,7 @@ class PhotoFile {
 			this.id = json['i']?parseInt(json['i']):0;
 			this.cr=(json['cr']?json['cr']:null);
 			this.ce=(json['ce']?json['ce']:null);
-			this.lumix=/^P\d/.test(this.fn)||/^DSC\d/.test(this.fn);
+			this.lumix=isLumix(this.fn);
 			this.thumb=json['th'];
 		}
 	}
@@ -164,7 +168,7 @@ function adjustTimes(el) {
 	var elDir=$(el).closest("div.dir");
 	var lumix=false;
 	$("form.file-data",elDir).each(function(){
-		if(/^P\d/.test($('h3',this).text())) { //lumix
+		if(isLumix($('h3',this).text())) { //lumix
 			lumix = true;
 			var dt=new Date($("input[name='taken-on']",this).val());
 			dt=addMinutes(dt,timeOffset);			
