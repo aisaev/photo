@@ -31,7 +31,7 @@ abstract class AbstractDAO implements IDAO {
     public function fillFromDB(&$o,$rec) {
         $len = count($this->map);
         
-        for ($i = 0,$j=1; $i < $len; $i++) {
+        for ($i = 0; $i < $len; $i++) {
             $dbfld = trim($this->map[$i][0],'"');
             $prop = $this->map[$i][1];
             if(is_bool($o->$prop)) {

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+<link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+<link href="https://unpkg.com/gijgo@1.9.13/css/gijgo.min.css" rel="stylesheet" type="text/css" />
+<style>
+body { padding-top: 70px;padding-bottom: 70px; }
+div.id a{cursor: pointer;}
+</style>
+<title>Locations</title>
+<script src="js/jquery.js"></script>
+<script src="js/cookies.js"></script>
+<script src="bootstrap/js/bootstrap.js"></script>
+<script src="https://unpkg.com/gijgo@1.9.13/js/gijgo.min.js" type="text/javascript"></script>
+<script src="js/config.js"></script>
+<script src="api.php?v=events&op=el"></script>
+<script src="js/edit_place.js"></script>
+</head>
+<body class="container">
+<nav class="navbar navbar-fixed-top">
+<div class="container">
+<div id="msg"></div>
+</div>
+</nav>
+<div class="form">
+<table class="table events">
+<thead>
+	<tr>
+		<th>ID</th>
+		<th>Time from</th>
+		<th>Time to</th>
+		<th>Описание</th>
+		<th>Description</th>
+		<th>Private?</th>
+		<th>Hide?</th>
+		<th>Added on</th>
+	</tr>
+</thead>
+<tbody>
+	<tr class="evt">
+		<td  class="form-group">
+			<div class="id"><a onclick="selectPlaceA(this)"></a></div>
+		</td>
+		<td  class="form-group">
+			<input class="form-control dt-fr">
+		</td>
+		<td  class="form-group">
+			<input class="form-control dt-to">
+		</td>
+		<td  class="form-group">
+			<div class="input-group"><span class="input-group-addon" id="basic-addon1">RU</span><input class="form-control dr"></div><br />
+			<div class="input-group"><span class="input-group-addon" id="basic-addon1">EN</span><input class="form-control de"></div>
+			<div class="msg"></div>
+		</td>
+		<td  class="form-group">
+			<input class="form-control cr">
+		</td>
+		<td  class="form-group">
+			<select class="form-control t">
+			</select>
+		</td>
+	</tr>
+</tbody>
+</table>
+<nav class="navbar navbar-fixed-bottom" style="background-color: white; opacity: 100%;">
+<div class="container">
+<button class="btn btn-success" onclick="SavePlaces()">Save</button>
+<button class="btn btn-success pull-right" onclick="AddNew()">New</button>
+</div>
+</nav>
+</div>
+</body>
+</html>

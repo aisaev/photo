@@ -46,6 +46,9 @@ final class Event extends DBModel implements \JsonSerializable
         if(Config::$__mode==Config::MODE_EDIT) {
             if($this->desc_r!==null) $a['r'] = $this->desc_r;
             if($this->desc_e!==null) $a['e'] = $this->desc_e;
+            if ($this->added_on <> null) {
+                $a['a'] = date_format($this->added_on, 'Y-m-d');
+            }
         } else {
             if(Config::$lng==Config::LNG_RU) $a['d'] = $this->desc_r;
             else $a['d'] = $this->desc_e;
@@ -59,6 +62,7 @@ final class Event extends DBModel implements \JsonSerializable
             }
         }
         if($this->sentimental) $a['s'] = 1;
+        if($this->hide) $a['h'] = 1;
         return $a;
     }
     

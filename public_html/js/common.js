@@ -468,6 +468,16 @@ function smartText(s) {
 	return linkify(s).replace(/\n/gim,"<br/>");	
 }
 
+function startSlideshow(listType,id){
+	switch(listType){
+	case "e":
+		//get list of photos for event
+		break;
+	default:
+		return;
+	}
+};
+
 function swipedetect(el, callback){
 	  
     var touchsurface = el,

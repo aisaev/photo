@@ -39,5 +39,17 @@ if(!isset($_GET['op'])) {
 </tbody>
 </table>
 </div>
+<div class="modal fade" id="slideshow" tabindex="-1" role="dialog" aria-labelledby="detLbl" aria-hidden="true" style="width:100%;">
+	<div class="modal-dialog" role="document" style="min-width:100%;min-height:100%;">
+		<div class="modal-content">
+			<div class="modal-body" style="position: relative;">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position:absolute; top:5px; right: 5px; font-size: 3em;color: white;">
+					<i class="fas fa-times-circle"></i></button>
+				<div class="content-center">
+				</div>		
+			</div>	
+		</div>
+	</div>
+</div>
 </body>
 </html>

@@ -35,7 +35,7 @@ function toTR(o,yr_curr) {
 	var tr=$('<tr class="yr'+o.yr+' collapse'+(is_recent?' recent':'')+
 			'"><td><a href="/event/'+o.id+'">'+
 			(o.date_from=='Pinned'?'<i class="fas fa-thumbtack"></i>':o.readableDates())+
-			'</a></td><td class="d"></td></tr>');
+			'</a></td><td class="d"></td><td><a href="/slideshow.php?op=e&id='+o.id+'">Slideshow</a></td></tr>');
 	$("td.d",tr).text(lng==LNG_RU?o.desc_r:o.desc_e);
 	if(o.is_new) $("td.d",tr).append(' <span class="badge badge-pill badge-warning">New</span>');
 	return tr;
